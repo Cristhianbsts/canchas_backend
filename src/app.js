@@ -1,6 +1,6 @@
 import express from "express";
 import morgan from "morgan";
-import { errorHandler } from "./middlewares/errorHandler.js";
+import { errorHandler } from "./middlewares/error.middleware.js";
 import {ApiError} from "./utils/apiError.js"
 
 
