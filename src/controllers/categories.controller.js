@@ -4,7 +4,6 @@ import createError from "../utils/createError.js";
 import { ok } from "../utils/apiResponse.js";
 
 export const getCategories = asyncHandler(async (req, res) => {
-  // para el select del admin y filtros del ecommerce
   const categories = await Category.find({ active: true }).sort({ name: 1 });
   return ok(res, categories, "Categorías obtenidas");
 });
@@ -31,7 +30,6 @@ export const createCategory = asyncHandler(async (req, res) => {
 export const updateCategory = asyncHandler(async (req, res) => {
   const { id } = req.params;
 
-  // Si actualizan name, slug se recalcula por el setter si mandan slug o name.
   const updated = await Category.findByIdAndUpdate(id, req.body, {
     new: true,
     runValidators: true,
@@ -53,7 +51,6 @@ export const deleteCategory = asyncHandler(async (req, res) => {
   return ok(res, category, "Categoría desactivada");
 });
 
-// Admin: ver todas (incluye inactivas)
 export const adminGetAllCategories = asyncHandler(async (req, res) => {
   const categories = await Category.find().sort({ createdAt: -1 });
   return ok(res, categories, "Categorías (admin) obtenidas");

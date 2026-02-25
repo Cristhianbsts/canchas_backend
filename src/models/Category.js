@@ -8,8 +8,8 @@ const normalize = (v) =>
 
 const slugify = (v) =>
   normalize(v)
-    .replace(/[^\w\s-]/g, "") // quita caracteres raros
-    .replace(/\s+/g, "-");    // espacios a guiones
+    .replace(/[^\w\s-]/g, "") 
+    .replace(/\s+/g, "-"); 
 
 const categorySchema = new mongoose.Schema(
   {
@@ -34,7 +34,6 @@ const categorySchema = new mongoose.Schema(
   { timestamps: true, autoIndex: true }
 );
 
-// Evita duplicados por nombre SOLO en activas
 categorySchema.index(
   { name: 1 },
   { unique: true, partialFilterExpression: { active: true } }
