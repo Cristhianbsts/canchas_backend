@@ -5,13 +5,11 @@ import { ok } from "../utils/apiResponse.js";
 
 
 export const getProducts = asyncHandler(async (req, res) => {
-  const { q, category, minPrice, maxPrice } = req.query;
+  const { q, categoryId, minPrice, maxPrice } = req.query;
 
   const filter = { active: true };
 
-  if (category) {
-    filter.category = String(category).trim().toLowerCase().replace(/\s+/g, " ");
-  }
+  if (categoryId) filter.category = categoryId;
 
   if (minPrice !== undefined || maxPrice !== undefined) {
     filter.price = {};
@@ -19,16 +17,14 @@ export const getProducts = asyncHandler(async (req, res) => {
     if (maxPrice !== undefined) filter.price.$lte = Number(maxPrice);
   }
 
-  if (q) {
-    // usa el índice text si existe, si no, igual funciona
-    filter.$text = { $search: q };
-  }
+  if (q) filter.$text = { $search: q };
 
-  const products = await Product.find(filter).sort({ createdAt: -1 });
+  const products = await Product.find(filter)
+    .populate("category", "name slug") // trae solo name y slug
+    .sort({ createdAt: -1 });
 
   return ok(res, products, "Productos obtenidos");
 });
-
 
 export const getProductById = asyncHandler(async (req, res) => {
   const { id } = req.params;

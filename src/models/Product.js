@@ -28,11 +28,9 @@ const productSchema = new mongoose.Schema(
       default: 0,
     },
     category: {
-      type: String,
-      trim: true,
-      maxlength: [40, "La categoría no puede superar 40 caracteres"],
-      default: "General",
-      lowercase: true,
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Category",
+      required: [true, "La categoría es obligatoria"],
     },
     image: {
       type: String,
