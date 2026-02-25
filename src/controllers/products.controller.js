@@ -3,11 +3,7 @@ import asyncHandler from "../utils/asyncHandler.js";
 import createError from "../utils/createError.js";
 import { ok } from "../utils/apiResponse.js";
 
-/**
- * GET /api/products
- * Público: lista productos activos
- * Query opcional: q, category, minPrice, maxPrice
- */
+
 export const getProducts = asyncHandler(async (req, res) => {
   const { q, category, minPrice, maxPrice } = req.query;
 
@@ -31,10 +27,7 @@ export const getProducts = asyncHandler(async (req, res) => {
   return ok(res, products, "Productos obtenidos");
 });
 
-/**
- * GET /api/products/:id
- * Público: detalle producto (solo active)
- */
+
 export const getProductById = asyncHandler(async (req, res) => {
   const { id } = req.params;
 
@@ -44,10 +37,7 @@ export const getProductById = asyncHandler(async (req, res) => {
   return ok(res, product, "Producto obtenido");
 });
 
-/**
- * POST /api/products
- * Admin: crear producto
- */
+
 export const createProduct = asyncHandler(async (req, res) => {
   const product = await Product.create(req.body);
 
@@ -58,10 +48,7 @@ export const createProduct = asyncHandler(async (req, res) => {
   });
 });
 
-/**
- * PUT /api/products/:id
- * Admin: editar producto
- */
+
 export const updateProduct = asyncHandler(async (req, res) => {
   const { id } = req.params;
 
@@ -75,10 +62,7 @@ export const updateProduct = asyncHandler(async (req, res) => {
   return ok(res, updated, "Producto actualizado");
 });
 
-/**
- * DELETE /api/products/:id
- * Admin: "borrado lógico" (active=false) para no romper compras/órdenes históricas
- */
+
 export const deleteProduct = asyncHandler(async (req, res) => {
   const { id } = req.params;
 
@@ -91,11 +75,7 @@ export const deleteProduct = asyncHandler(async (req, res) => {
   return ok(res, product, "Producto desactivado");
 });
 
-/**
- * GET /api/products/admin/all
- * Admin: lista TODOS (activos e inactivos)
- * (este endpoint es útil para el panel admin)
- */
+
 export const adminGetAllProducts = asyncHandler(async (req, res) => {
   const products = await Product.find().sort({ createdAt: -1 });
   return ok(res, products, "Productos (admin) obtenidos");
