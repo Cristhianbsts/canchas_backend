@@ -1,5 +1,6 @@
 import express from "express";
 import morgan from "morgan";
+import router from "./rutes/ruteRegister.js";
 
 
 
@@ -10,8 +11,6 @@ app.use(express.urlencoded({extended: true}));
 app.use(morgan("dev")); 
 
 
-app.get('/health', (req, res) => {
-  res.status(200).json({ ok: true });
-});
+app.get('/health', router);
 
 export default app;
