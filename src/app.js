@@ -9,9 +9,9 @@ import ruteRegister from './rutes/ruteRegister.js'
 
 const app = express();
 
+app.use(morgan("dev"));
 app.use(cors());
 app.use(express.json());
-app.use(morgan("dev"));
 
 app.use("/api/products", productsRouter);
 app.use("/api/categories", categoriesRouter);
