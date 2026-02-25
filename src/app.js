@@ -13,7 +13,8 @@ app.use(morgan("dev"));
 app.use("/api/products", productsRouter);
 app.use("/api/categories", categoriesRouter);
 
-// test rapido
-app.get("/", (req,res)=> res.send("API funcionando"));
+app.get('/health', (req, res) => {
+    res.status(200).json({ ok: true });
+  });
 
 export default app;

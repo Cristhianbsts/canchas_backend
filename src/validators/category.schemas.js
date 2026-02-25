@@ -6,7 +6,6 @@ export const categoryIdParamRules = [
 
 export const createCategoryRules = [
   body("name").isString().trim().isLength({ min: 2, max: 40 }).withMessage("Nombre inválido"),
-  // slug opcional: si no lo mandás, igual se genera con el setter si lo envías
   body("slug").optional().isString().trim().isLength({ min: 2, max: 60 }).withMessage("Slug inválido"),
 ];
 
