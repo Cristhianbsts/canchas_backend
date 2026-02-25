@@ -26,10 +26,10 @@ const handleErrorsValidation = (req, res , next )=>{
         }
         return true;     
      }),
-    //  check('email')
-    //  .notEmpty().withMessage('Debe ingresar algun mail')
-    //  .trim()
-    //  .isEmail().normalizeEmail().withMessage('Correo no valido'),
+     check('email')
+     .notEmpty().withMessage('Debe ingresar algun mail')
+     .trim()
+     .isEmail().normalizeEmail().withMessage('Correo no valido'),
     check('password')
     .notEmpty().withMessage('Debe ingresar alguna contraseña')
     .trim()
@@ -41,11 +41,13 @@ const handleErrorsValidation = (req, res , next )=>{
         minSymbols:1
     })
     .escape(),
-    // check('phoneNumber')
-    // .notEmpty().withMessage('Debe ingresar algun numero')
-    // .trim()
-    // .isNumeric()
-    // .isLength({min:10,max:10})
-    // ,
+    check('phoneNumber')
+    .notEmpty().withMessage('Debe ingresar algun numero')
+    .trim()
+    .isNumeric()
+    .isLength({min:10,max:10})
+    ,
     handleErrorsValidation
  ]  
+
+ export {formRegisterValidation};

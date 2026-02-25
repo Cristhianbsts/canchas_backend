@@ -1,6 +1,6 @@
 import express from "express";
 import morgan from "morgan";
-import router from "./rutes/ruteRegister.js";
+import ruteRegister from './rutes/ruteRegister.js'
 
 
 
@@ -11,6 +11,6 @@ app.use(express.urlencoded({extended: true}));
 app.use(morgan("dev")); 
 
 
-app.get('/health', router);
+app.use('/api/auth', ruteRegister )
 
 export default app;
