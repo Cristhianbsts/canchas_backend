@@ -8,6 +8,7 @@ const productSchema = new mongoose.Schema(
       trim: true,
       minlength: [2, "El nombre debe tener al menos 2 caracteres"],
       maxlength: [80, "El nombre no puede superar 80 caracteres"],
+      lowercase: true, 
     },
     description: {
       type: String,
@@ -31,21 +32,31 @@ const productSchema = new mongoose.Schema(
       trim: true,
       maxlength: [40, "La categoría no puede superar 40 caracteres"],
       default: "General",
+      lowercase: true,
     },
     image: {
       type: String,
       trim: true,
-      default: "", 
+      default: "",
     },
     active: {
       type: Boolean,
       default: true,
     },
   },
-  { timestamps: true }
+  { timestamps: true, autoIndex: true }
 );
 
-// Índices útiles para búsquedas
+
+productSchema.index(
+  { name: 1, category: 1 },
+  {
+    unique: true,
+    partialFilterExpression: { active: true },
+  }
+);
+
+
 productSchema.index({ name: "text", category: "text" });
 
 const Product = mongoose.model("Product", productSchema);

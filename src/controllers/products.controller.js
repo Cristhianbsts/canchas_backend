@@ -9,7 +9,9 @@ export const getProducts = asyncHandler(async (req, res) => {
 
   const filter = { active: true };
 
-  if (category) filter.category = category;
+  if (category) {
+    filter.category = String(category).trim().toLowerCase().replace(/\s+/g, " ");
+  }
 
   if (minPrice !== undefined || maxPrice !== undefined) {
     filter.price = {};
@@ -39,13 +41,37 @@ export const getProductById = asyncHandler(async (req, res) => {
 
 
 export const createProduct = asyncHandler(async (req, res) => {
-  const product = await Product.create(req.body);
+  // 1) Normalizamos igual que el model (para comparar bien)
+  const name = String(req.body.name ?? "")
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, " ");
 
-  return res.status(201).json({
-    ok: true,
-    message: "Producto creado",
-    data: product,
-  });
+  const category = String(req.body.category ?? "general")
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, " ");
+
+  // 2) Chequeo previo (mensaje lindo)
+  const exists = await Product.findOne({ name, category, active: true });
+  if (exists) throw createError(400, "Ya existe un producto con ese nombre en esa categoría");
+
+  // 3) Creamos (guardamos normalizado)
+  try {
+    const product = await Product.create({ ...req.body, name, category });
+
+    return res.status(201).json({
+      ok: true,
+      message: "Producto creado",
+      data: product,
+    });
+  } catch (error) {
+    // 4) Protección REAL (índice unique). Esto cubre concurrencia.
+    if (error?.code === 11000) {
+      throw createError(400, "Ya existe un producto con ese nombre en esa categoría");
+    }
+    throw error;
+  }
 });
 
 
