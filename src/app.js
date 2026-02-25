@@ -1,7 +1,7 @@
 import express from "express";
 import morgan from "morgan";
 import { errorHandler } from "./middlewares/error.middleware.js";
-import {ApiError} from "./utils/apiError.js"
+import {ApiError} from "./utils/createError.js"
 
 
 
