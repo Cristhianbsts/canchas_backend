@@ -26,7 +26,7 @@ const login = async (req, res) => {
 
     const cookieOptions = {
       httpOnly: true,
-      sacure: true,
+      secure: true,
       sameSite: "lax",
       maxAge: 60 * 60 * 1000,
     };
@@ -45,4 +45,4 @@ const login = async (req, res) => {
   }
 };
 
-export {login};
+export { login };

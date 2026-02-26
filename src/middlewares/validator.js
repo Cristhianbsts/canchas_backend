@@ -1,5 +1,5 @@
 import { check, validationResult } from "express-validator";
-import User from "../models/User.js";
+
 
 const handleValidationErrors = (req, res, next) => {
   const errors = validationResult(req);
@@ -17,13 +17,8 @@ const validateLoginUser = () => [
     .notEmpty()
     .withMessage("El campo es obligatorio")
     .isEmail()
-    .withMessage("Ingresá un correo electrónico válido.")
-    .custom(async (email) => {
-      const user = await User.findOne({ email });
-      if (user?.emailVerified) {
-        throw new Error("El usuario ya está verificado");
-      }
-    }),
+    .withMessage("Ingresá un correo electrónico válido."),
+   
 
   check("password")
     .notEmpty()
