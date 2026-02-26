@@ -1,16 +1,5 @@
-import { check, validationResult } from "express-validator";
-
-
-const handleValidationErrors = (req, res, next) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json({
-      ok: false,
-      errors: errors.mapped(),
-    });
-  }
-  next();
-};
+import { check } from "express-validator";
+import { handleValidationErrors } from "./error.middleware.js";
 
 const validateLoginUser = () => [
   check("email")
