@@ -50,7 +50,7 @@ const UserSchema = Schema(
     },
 );
 
-// Encriptación de la contraseña
+
 
 UserSchema.pre("save", async function () {
     if (!this.isModified("password")){
@@ -61,20 +61,20 @@ UserSchema.pre("save", async function () {
     this.password = await bcrypt.hash(this.password, salt);
 });
 
-// Generamos el código de verificación de 6 digitos
+
 
 UserSchema.methods.generateVerificationCode = function () {
-    //código de 6 digitos
+ 
     const code = Math.floor(100000 + Math.random() * 900000).toString();
 
     this.verificationCode = code;
-    this.verificationCodeExpires = Date.now() + 15 * 60 * 1000; //15 minutos
+    this.verificationCodeExpires = Date.now() + 15 * 60 * 1000; 
     return code;
 };
 
-// Comparar las contraseñas (no es una función asincrona y se usa compareSync)
+
 UserSchema.methods.comparePassword = function (userPassword) {
-    return bcrypt.compareSync(userPassword, this.password); //devuelve un booleano
+    return bcrypt.compareSync(userPassword, this.password); 
 };
 
 export default model("User", UserSchema);
