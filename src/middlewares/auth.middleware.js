@@ -1,21 +1,35 @@
-import { check } from "express-validator";
-import { handleValidationErrors } from "./error.middleware.js";
+import User from "../models/User.js";
 
-const validateLoginUser = () => [
-  check("email")
-    .notEmpty()
-    .withMessage("El campo es obligatorio")
-    .isEmail()
-    .withMessage("Ingresá un correo electrónico válido."),
-   
+export const authenticate = async (req, res, next) => {
+  try {
+    const token = res.cookies.token;
 
-  check("password")
-    .notEmpty()
-    .withMessage("La contraseña es obligatoria")
-    .isString()
-    .withMessage("El campo tiene que ser un string"),
+    if (!token) {
+      return res.status(401).json({
+        ok: false,
+        message: "La authenticación es requerida. Por favor envia un token",
+      });
+    }
 
-  handleValidationErrors,
-];
+    const decoded = virifyToken(token);
 
-export { validateLoginUser };
+    const user = await User.findById(decoded.userId).select("--password");
+
+    if (!user) {
+      return res.status(401).json({
+        ok: false,
+        message: "Usuario no encontrdo",
+      });
+    }
+
+    req.user = user;
+
+    next();
+  } catch (error) {
+    console.error(error);
+    return res.status(401).json({
+      ok: false,
+      message: "Token invalido o ya expirado",
+    });
+  }
+};
