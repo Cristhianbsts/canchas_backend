@@ -1,23 +1,31 @@
 import express from "express";
+import cors from "cors";
 import morgan from "morgan";
 import authRoutes from "./routes/auth.routes.js"
 import cookieParser from "cookie-parser";
+import productsRouter from "./routes/products.routes.js";
+import categoriesRouter from "./routes/categories.routes.js";
+import ruteRegister from './rutes/ruteRegister.js'
 
 
 
 const app = express();
 
+app.use(morgan("dev")); 
 app.use(express.json()); 
 app.use(express.urlencoded({extended: true})); 
-app.use(morgan("dev")); 
 app.use(cookieParser())
+app.use(cors());
 
-
-//Rutas
+app.use("/api/products", productsRouter);
+app.use("/api/categories", categoriesRouter);
+app.use('/api/auth', ruteRegister )
 app.use("/api/auth",authRoutes)
 
+
+
 app.get('/health', (req, res) => {
-  res.status(200).json({ ok: true });
-});
+    res.status(200).json({ ok: true });
+  });
 
 export default app;

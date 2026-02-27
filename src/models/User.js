@@ -9,22 +9,22 @@ const UserSchema = Schema(
             unique: true,
             trim: true,
         },
-        email: {
-            type: String,
-            required: true,
-            unique: true,
-            lowercase: true,
-            trim: true,
-        },
+        // email: {
+        //     type: String,
+        //     required: true,
+        //     unique: true,
+        //     lowercase: true,
+        //     trim: true,
+        // },
         password: {
             type: String,
             required: true,
         },
-        phoneNumber: {
-            type: String,
-            required: [ true, "El Número de celular es obligatorio"],
-            trim: true,    
-        },
+        // phoneNumber: {
+        //     type: String,
+        //     required: [ true, "El Número de celular es obligatorio"],
+        //     trim: true,    
+        // },
         role: {
             type: String,
             enum: ["user", "admin", "superadmin"],
