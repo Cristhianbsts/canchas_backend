@@ -1,64 +1,100 @@
 import { Router } from "express";
-
+import { check, param, body } from "express-validator";
+import { authenticate } from "../middlewares/auth.js";
 import {
-  getProducts,
-  getProductById,
   createProduct,
+  getProducts,
   updateProduct,
   deleteProduct,
-  adminGetAllProducts,
-} from "../controllers/products.controller.js";
-
-// ✅ Usá el que exista en tu proyecto:
-// import {
-//   createProductRules,
-//   updateProductRules,
-//   productIdParamRules,
-//   listProductsQueryRules,
-// } from "../validators/product.schemas.js"; // (singular)
-
+} from "../controllers/product.controller.js";
 import {
-  createProductRules,
-  updateProductRules,
-  productIdParamRules,
-  listProductsQueryRules,
-} from "../validators/products.schemas.js"; // (plural)
-
-// ❌ Por ahora NO los tenés, dejalos comentados:
-// import { validate } from "../middlewares/validate.middleware.js";
-// import { requireAuth } from "../middlewares/auth.middleware.js";
-// import { requireRole } from "../middlewares/role.middleware.js";
+  handleValidationErrors,
+  validateProductId,
+} from "../middlewares/validator.js";
 
 const router = Router();
 
-/**
- * IMPORTANTE: rutas más específicas antes que "/:id"
- * (si no, "admin" entra como id)
- */
+router.get("/", getProducts);
 
-// Admin (por ahora público para test)
-router.get("/admin/all", adminGetAllProducts);
+router.post(
+  "/",
+  [
+    authenticate,
 
-/**
- * Públicos
- */
-router.get("/", /* listProductsQueryRules, validate, */ getProducts);
-router.get("/:id", /* productIdParamRules, validate, */ getProductById);
+    body("name", "El nombre es obligatorio")
+      .notEmpty()
+      .bail()
+      .isString()
+      .trim(),
 
-/**
- * CRUD (por ahora público para test)
- */
-router.post("/", /* requireAuth, requireRole("ADMIN"), createProductRules, validate, */ createProduct);
+    body("category")
+      .notEmpty()
+      .withMessage("La categoría es obligatoria")
+      .bail()
+      .isMongoId()
+      .withMessage("No es un id de mongo válido"),
+
+    body("price")
+      .optional()
+      .isFloat({ min: 0 })
+      .withMessage("El precio no puede ser menor a 0"),
+
+    body("stock")
+      .optional()
+      .isInt({ min: 0 })
+      .withMessage("El stock no puede ser menor a 0"),
+
+    body("available")
+      .optional()
+      .isBoolean()
+      .withMessage("Disponible debe ser booleano"),
+
+    handleValidationErrors,
+  ],
+  createProduct
+);
 
 router.put(
   "/:id",
-  /* requireAuth, requireRole("ADMIN"), productIdParamRules, updateProductRules, validate, */
+  [
+    authenticate,
+
+    param("id", "No es un id válido").isMongoId(),
+    param("id").custom(validateProductId),
+
+    body("name").optional().isString().trim(),
+    body("category").optional().isMongoId().withMessage("No es un id de mongo válido"),
+
+    body("price")
+      .optional()
+      .isFloat({ min: 0 })
+      .withMessage("El precio no puede ser menor a 0"),
+
+    body("stock")
+      .optional()
+      .isInt({ min: 0 })
+      .withMessage("El stock no puede ser menor a 0"),
+
+    body("available")
+      .optional()
+      .isBoolean()
+      .withMessage("Disponible debe ser booleano"),
+
+    handleValidationErrors,
+  ],
   updateProduct
 );
 
 router.delete(
   "/:id",
-  /* requireAuth, requireRole("ADMIN"), productIdParamRules, validate, */
+  [
+    authenticate,
+
+    param("id", "No es un id válido").isMongoId(),
+    param("id").custom(validateProductId),
+
+    handleValidationErrors,
+  ],
   deleteProduct
 );
 

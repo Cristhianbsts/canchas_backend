@@ -1,43 +1,32 @@
-import mongoose from "mongoose";
+import { Schema, model } from "mongoose";
 
-const normalize = (v) =>
-  String(v ?? "")
-    .trim()
-    .toLowerCase()
-    .replace(/\s+/g, " ");
-
-const slugify = (v) =>
-  normalize(v)
-    .replace(/[^\w\s-]/g, "") 
-    .replace(/\s+/g, "-"); 
-
-const categorySchema = new mongoose.Schema(
+const CategorySchema = new Schema(
   {
     name: {
       type: String,
       required: [true, "El nombre es obligatorio"],
-      minlength: [2, "El nombre debe tener al menos 2 caracteres"],
-      maxlength: [40, "El nombre no puede superar 40 caracteres"],
-      set: normalize,
+      trim: true,
     },
-    slug: {
-      type: String,
-      required: true,
-      unique: true,
-      set: slugify,
-    },
-    active: {
+    status: {
       type: Boolean,
       default: true,
     },
+    user: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+      required: false,
+    },
   },
-  { timestamps: true, autoIndex: true }
+  {
+    timestamps: true,
+    autoIndex: true,
+  }
 );
 
-categorySchema.index(
+// Unique index: name must be unique ONLY when status === true
+CategorySchema.index(
   { name: 1 },
-  { unique: true, partialFilterExpression: { active: true } }
+  { unique: true, partialFilterExpression: { status: true } }
 );
 
-const Category = mongoose.model("Category", categorySchema);
-export default Category;
+export default model("Category", CategorySchema);

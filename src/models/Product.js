@@ -1,61 +1,63 @@
-import mongoose from "mongoose";
+import { Schema, model } from "mongoose";
 
-const productSchema = new mongoose.Schema(
+const ProductSchema = new Schema(
   {
     name: {
       type: String,
       required: [true, "El nombre es obligatorio"],
+      unique: true,
       trim: true,
-      minlength: [2, "El nombre debe tener al menos 2 caracteres"],
-      maxlength: [80, "El nombre no puede superar 80 caracteres"],
-      lowercase: true, 
     },
-    description: {
-      type: String,
-      trim: true,
-      maxlength: [500, "La descripción no puede superar 500 caracteres"],
-      default: "",
-    },
-    price: {
-      type: Number,
-      required: [true, "El precio es obligatorio"],
-      min: [0, "El precio no puede ser negativo"],
-    },
-    stock: {
-      type: Number,
-      required: [true, "El stock es obligatorio"],
-      min: [0, "El stock no puede ser negativo"],
-      default: 0,
-    },
-    category: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Category",
-      required: [true, "La categoría es obligatoria"],
-    },
-    image: {
-      type: String,
-      trim: true,
-      default: "",
-    },
-    active: {
+
+    status: {
       type: Boolean,
       default: true,
     },
+
+    user: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+
+    price: {
+      type: Number,
+      default: 0,
+      min: [0, "El precio no puede ser menor a 0"],
+    },
+
+    stock: {
+      type: Number,
+      default: 0,
+      min: [0, "El stock no puede ser menor a 0"],
+    },
+
+    category: {
+      type: Schema.Types.ObjectId,
+      ref: "Category",
+      required: true,
+    },
+
+    description: {
+      type: String,
+      default: "",
+    },
+
+    available: {
+      type: Boolean,
+      default: true,
+    },
+
+    image: {
+      type: String,
+      default:
+        "https://imgs.search.brave.com/_TVJChU0ZD9PH6uYI3xazoRy7KeHdN_HDkcJ85iI5NA/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9jZG4udmVjdG9yc3RvY2suY29tL2kvNTAwcC8zMi80NS9uby1pbWFnZS1zeW1ib2wtbWlz/c2luZy1hdmFpbGFi/bGUtaWNvbi1nYWxs/ZXJ5LXZlY3Rvci00/NTcwMzI0NS5qcGc",
+    },
   },
-  { timestamps: true, autoIndex: true }
-);
-
-
-productSchema.index(
-  { name: 1, category: 1 },
   {
-    unique: true,
-    partialFilterExpression: { active: true },
+    timestamps: true,
+    versionKey: false,
   }
 );
 
-
-productSchema.index({ name: "text", category: "text" });
-
-const Product = mongoose.model("Product", productSchema);
-export default Product;
+export default model("Product", ProductSchema);

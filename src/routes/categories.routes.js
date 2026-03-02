@@ -1,31 +1,58 @@
 import { Router } from "express";
+import { authenticate } from "../middlewares/auth.js";
 import {
   getCategories,
-  getCategoryById,
   createCategory,
   updateCategory,
   deleteCategory,
-  adminGetAllCategories,
 } from "../controllers/categories.controller.js";
 
-// FUTURO (cuando los tengas):
-// import { validate } from "../middlewares/validate.middleware.js";
-// import { requireAuth } from "../middlewares/auth.middleware.js";
-// import { requireRole } from "../middlewares/role.middleware.js";
-// import { createCategoryRules, updateCategoryRules, categoryIdParamRules } from "../validators/category.schemas.js";
+import {
+  categoryIdParamRules,
+  createCategoryRules,
+  updateCategoryRules,
+} from "../validators/category.rules.js";
+
+import handleValidationErrors from "../middlewares/handleValidationErrors.js";
+// Si vos ya tenés esto en ../middlewares/validator.js, importalo de ahí:
+import { validateAdminRole } from "../middlewares/validator.js";
 
 const router = Router();
 
-// Admin (por ahora público para test)
-router.get("/admin/all", adminGetAllCategories);
-
-// Públicos
 router.get("/", getCategories);
-router.get("/:id", getCategoryById);
 
-// CRUD (por ahora público para test)
-router.post("/", createCategory);
-router.put("/:id", updateCategory);
-router.delete("/:id", deleteCategory);
+router.post(
+  "/",
+  [
+    authenticate,
+    validateAdminRole,
+    ...createCategoryRules,
+    handleValidationErrors,
+  ],
+  createCategory
+);
+
+router.put(
+  "/:id",
+  [
+    authenticate,
+    validateAdminRole,
+    ...categoryIdParamRules,
+    ...updateCategoryRules,
+    handleValidationErrors,
+  ],
+  updateCategory
+);
+
+router.delete(
+  "/:id",
+  [
+    authenticate,
+    validateAdminRole,
+    ...categoryIdParamRules,
+    handleValidationErrors,
+  ],
+  deleteCategory
+);
 
 export default router;
