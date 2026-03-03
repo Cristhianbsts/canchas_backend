@@ -1,4 +1,5 @@
 import { validationResult } from "express-validator";
+import { check } from "express-validator";
 
 export const validate = (req, res, next) => {
   const errors = validationResult(req);
@@ -16,3 +17,33 @@ export const validate = (req, res, next) => {
 
   next();
 };
+
+// 1. Validaciones para CREAR una cancha
+export const validateCreateField = [
+  check("name", "El nombre de la cancha es obligatorio y debe tener al menos 3 letras")
+    .notEmpty()
+    .isLength({ min: 3 }),
+  check("pricePerHour", "El precio por hora es obligatorio y debe ser un número mayor a 0")
+    .isNumeric()
+    .custom((value) => value > 0),
+  validate // Al final, llamamos al guardia que revisa si hubo errores
+];
+
+// 2. Validaciones para ACTUALIZAR una cancha
+export const validateUpdateField = [
+  check("id", "No es un ID válido de MongoDB").isMongoId(),
+  check("name", "Si envías un nombre, debe tener al menos 3 letras")
+    .optional()
+    .isLength({ min: 3 }),
+  check("pricePerHour", "Si envías un precio, debe ser un número mayor a 0")
+    .optional()
+    .isNumeric()
+    .custom((value) => value > 0),
+  validate
+];
+
+// 3. Validaciones para BORRAR una cancha
+export const validateDeleteField = [
+  check("id", "No es un ID válido de MongoDB").isMongoId(),
+  validate
+];
