@@ -31,7 +31,7 @@ const activeUser = async ( req, res) => {
             id,
             { active : true},
              { new: true }
-        ).select(" -password")
+        ).select("-password")
 
         if (!userUpdate){
             return res.status(404).json({
