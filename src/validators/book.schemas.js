@@ -1,24 +1,35 @@
-import Book from "../models/Book.js";
-import Field from "../models/Field.js";
+import {check, param} from "express-validator";
+import { parse, isValid } from "date-fns";
 
-const validateField=async (field) => {
-    const fieldExists = await Field.findById(field);
-    if (!fieldExists || !fieldExists.active) {
-        return res.status(404).json({
-            ok:false,
-            message: "No existe la cancha"
-        })
-    }
-}
+const validateId = [
+    param("id")
+    .isMongoId().withMessage("El id no es un id válido")
+    .notEmpty().withMessage("El id es obligatorio")
+];
 
-const validateBook= async (id) => {
-    const bookExists = await Book.findById(id);
-    if (!bookExists) {
-        return res.status(404).json({
-            ok:false,
-            message: "No existe la reserva"
-        })
-    }
-}
+const validateField = [
+    check("field")
+    .notEmpty().withMessage("La cancha es obligatoria")
+    .isMongoId().withMessage("El id no es un id válido")
+];
 
-export {validateField, validateBook};
+const validateDate = [
+    check("date")
+    .notEmpty().withMessage("La fecha es obligatoria")
+    .matches(/^\d{4}-\d{2}-\d{2}$/).withMessage("Formato de fecha inválido (yyyy-MM-dd)")
+    .custom((value) => {
+        const parsed = parse(value, "yyyy-MM-dd", new Date());
+        if (!isValid(parsed)) {
+            throw new Error("La fecha es inválida");
+        }
+        return true;
+    })
+];
+
+const validateTime = [
+    check("time")
+    .notEmpty().withMessage("La hora es obligatoria")
+    .matches(/^([01]\d|2[0-3]):00$/).withMessage("Formato de hora inválido (HH:00)")
+];
+
+export {validateDate, validateField, validateId, validateTime}

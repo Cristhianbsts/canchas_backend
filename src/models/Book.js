@@ -15,11 +15,13 @@ const BookSchema = Schema (
         date: {
             type: Date,
             required: [true, "La fecha de reserva es obligatoria"],
+            trim: true,
         },
         time: {
             type: String,
             required: [true, "El horario de reserva es obligatorio"],
             enum: ["18:00","19:00","20:00","21:00","22:00","23:00"],
+            trim: true,
         },
         status: {
             type: String,
