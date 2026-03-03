@@ -1,6 +1,6 @@
 import Book from "../models/Book.js";
-import Field from "../models/Field.js";
 import { startOfDay, endOfDay, isBefore, isAfter, addDays} from "date-fns";
+import { validateField, validateBook } from "../validators/book.schemas.js";
 
 const getAvailableTimes = async (req, res, next) => {
     try {
@@ -8,13 +8,7 @@ const getAvailableTimes = async (req, res, next) => {
 
         const times = ["18:00","19:00","20:00","21:00","22:00","23:00"];
 
-        const fieldExists = await Field.findById(field);
-        if (!fieldExists || !fieldExists.active) {
-            return res.status(404).json({
-                ok:false,
-                message: "No existe la cancha"
-            })
-        }
+        validateField(field)
 
         const startDay = startOfDay(new Date(date));
         const endDay = endOfDay(new Date(date));
@@ -47,22 +41,14 @@ const getAvailableTimes = async (req, res, next) => {
     }
 };
 
-// Verificar que ya exista una reserva cancelada y cambiar los datos
 const createBooking = async (req, res, next)=>{
     try {
         const {field, date, time} = req.body;
         const {userId} = req.user.id
-
         const bookingDate = new Date(`${date}T${time}:00`);
 
     // Verificar que la cancha exista
-    const fieldExists = await Field.findById(field);
-    if (!fieldExists || !fieldExists.active) {
-        return res.status(404).json({
-            ok:false,
-            message: "No existe la cancha"
-        })
-    }
+    validateField(field)
 
     // Verificar que no sea en un dia ya pasado
     const before = isBefore(bookingDate, new Date())
@@ -179,8 +165,6 @@ const getBookings = async (req, res, next)=>{
 
 const getMyBookings = async (req, res, next)=>{
     try {
-
-        // Establecer que se muestren las que aun no han pasado
         const userId = req.user.id;
         const books = await Book.find({ user: userId, date: {$gte: new Date()}}).sort({_id: -1}).limit(720)
 
@@ -199,7 +183,9 @@ const getMyBookings = async (req, res, next)=>{
 
 const getBookingsByIdAndDate = async (req, res, next)=>{
     try {
-        const {field, date} = req.params;
+        const {field, date} = req.query;
+
+        validateField(field)
 
         const startDay = startOfDay(new Date(date));
         const endDay = endOfDay(new Date(date));
@@ -229,6 +215,8 @@ const cancelBooking = async (req, res, next)=>{
     try {
         const {id} = req.params;
 
+        validateBook(id)
+
         await Book.findByIdAndUpdate(id, { status: "Cancelada" });
 
         res.status(200).json({
@@ -246,6 +234,8 @@ const cancelBooking = async (req, res, next)=>{
 const deleteBooking = async (req, res, next)=>{
     try {
         const {id} = req.params;
+
+        validateBook(id)
 
         await Book.findByIdAndDelete({_id: id})
 
