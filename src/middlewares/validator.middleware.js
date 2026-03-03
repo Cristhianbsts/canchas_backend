@@ -1,5 +1,6 @@
 import { check } from "express-validator";
 import { handleValidationErrors } from "./error.middleware.js";
+import User from "../models/User.js"
 
 const validateLoginUser = () => [
   check("email")
@@ -18,4 +19,12 @@ const validateLoginUser = () => [
   handleValidationErrors,
 ];
 
-export { validateLoginUser };
+ const userExistsById = async (id) => {
+  const user = await User.findById(id);
+
+  if (!user) {
+    throw new Error("Usuario no existe");
+  }
+};
+
+export { validateLoginUser ,userExistsById};
