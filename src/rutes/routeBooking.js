@@ -3,7 +3,7 @@ import router from "./ruteRegister.js";
 
 
 router.post("/booking",getBookTimes)
-router.put("/reserveBooking",reserveCourt)
+router.patch("/reserveBooking",reserveCourt)
 
 
 

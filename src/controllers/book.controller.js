@@ -15,13 +15,14 @@ const getBookTimes = async (req,res)=>{
          });
           newBooking.save()
          return res.status(200).json({
-            newBooking
+            ok:true,
+            msg:newBooking
          })
        }
 
        return res.status(200).json({
            ok:true,
-           msg: {existingBooking}
+           msg: existingBooking
        })
 
     } catch (error) {
@@ -30,6 +31,7 @@ const getBookTimes = async (req,res)=>{
 }
 
 const reserveCourt = async (req,res)=>{
+    
     const {fieldId,date, time, userId,status} = req.body;
 
     try {
