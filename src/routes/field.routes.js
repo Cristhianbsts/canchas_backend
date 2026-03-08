@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { getFields, createField, updateField, deleteField } from "../controllers/field.controller.js";
-import { validateCreateField, validateUpdateField, validateDeleteField } from "../middlewares/validate.middleware.js";
+import { validateCreateField, validateUpdateField, validateDeleteField } from "../middlewares/field.middleware.js";
 
 const router = Router();
 
