@@ -6,7 +6,7 @@ import {
   suspendUser,
 } from "../controller/user.controller.js";
 import { handleValidationErrors } from "../middlewares/error.middleware.js";
-import { userExistsById } from "../middlewares/validator.middleware.js";
+import { userExistsById } from "../middlewares/login.middleware.js";
 
 const router = Router();
 
