@@ -7,8 +7,8 @@ const getFields = async (req, res) => {
         const { limite = 10, desde = 0} = req.query;
 
         const [total, fields] = await Promise.all([
-            Field.countDocuments ({ active : true}),
-            Field.find({ active : true})
+            Field.countDocuments ({ isDeleted: false}),
+            Field.find({ isDeleted: false})
             .limit(Number(limite))
             .skip(Number(desde))
         ]);
@@ -102,7 +102,7 @@ const deleteField = async (req, res) => {
     try {
         const { id } = req.params;
 
-        const fieldDeleted = await Field.findByIdAndUpdate(id, { active: false}, { new: true});
+        const fieldDeleted = await Field.findByIdAndUpdate(id, { isDeleted: true }, { new: true});
 
         if (!fieldDeleted){
             return res.status(404).json({
