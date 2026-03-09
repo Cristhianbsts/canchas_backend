@@ -7,6 +7,7 @@ import productsRouter from "./routes/products.routes.js";
 import categoriesRouter from "./routes/categories.routes.js";
 import ruteRegister from './rutes/ruteRegister.js'
 import user from "./routes/user.routes.js"
+import paymentRoutes from "./routes/payment.routes.js"
 
 import fieldRoutes from "./routes/field.routes.js"
 
@@ -26,6 +27,7 @@ app.use('/api/auth', ruteRegister )
 app.use("/api/auth",authRoutes)
 app.use("/api/users",user)
 app.use("/api/fields", fieldRoutes);
+app.use("/api/payment", paymentRoutes)
 
 
 
