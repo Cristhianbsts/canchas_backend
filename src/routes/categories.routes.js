@@ -1,5 +1,14 @@
 import { Router } from "express";
-import { authenticate } from "../middlewares/auth.js";
+
+import { authenticate } from "../middlewares/token.middleware.js";
+import handleValidationErrors from "../middlewares/error.middleware.js";
+
+import {
+  validateCategoryId,
+  validateCategoryNameExists,
+  validateCategoryNameOnUpdate,
+} from "../middlewares/categories.middleware.js";
+
 import {
   getCategories,
   createCategory,
@@ -11,11 +20,7 @@ import {
   categoryIdParamRules,
   createCategoryRules,
   updateCategoryRules,
-} from "../validators/category.rules.js";
-
-import handleValidationErrors from "../middlewares/handleValidationErrors.js";
-// Si vos ya tenés esto en ../middlewares/validator.js, importalo de ahí:
-import { validateAdminRole } from "../middlewares/validator.js";
+} from "../validators/categories.rules.js";
 
 const router = Router();
 
@@ -25,21 +30,22 @@ router.post(
   "/",
   [
     authenticate,
-    validateAdminRole,
     ...createCategoryRules,
     handleValidationErrors,
+    validateCategoryNameExists,
   ],
   createCategory
 );
 
-router.put(
+router.patch(
   "/:id",
   [
     authenticate,
-    validateAdminRole,
     ...categoryIdParamRules,
     ...updateCategoryRules,
     handleValidationErrors,
+    validateCategoryId,
+    validateCategoryNameOnUpdate,
   ],
   updateCategory
 );
@@ -48,9 +54,9 @@ router.delete(
   "/:id",
   [
     authenticate,
-    validateAdminRole,
     ...categoryIdParamRules,
     handleValidationErrors,
+    validateCategoryId,
   ],
   deleteCategory
 );

@@ -1,16 +1,21 @@
 import { Router } from "express";
-import { check, param, body } from "express-validator";
-import { authenticate } from "../middlewares/auth.js";
+
+import { authenticate } from "../middlewares/token.middleware.js";
+import handleValidationErrors from "../middlewares/error.middleware.js";
+import { validateProductId } from "../middlewares/products.middleware.js";
+
 import {
   createProduct,
   getProducts,
   updateProduct,
   deleteProduct,
 } from "../controllers/product.controller.js";
+
 import {
-  handleValidationErrors,
-  validateProductId,
-} from "../middlewares/validator.js";
+  productIdParamRules,
+  createProductRules,
+  updateProductRules,
+} from "../validators/products.rules.js";
 
 const router = Router();
 
@@ -20,67 +25,20 @@ router.post(
   "/",
   [
     authenticate,
-
-    body("name", "El nombre es obligatorio")
-      .notEmpty()
-      .bail()
-      .isString()
-      .trim(),
-
-    body("category")
-      .notEmpty()
-      .withMessage("La categoría es obligatoria")
-      .bail()
-      .isMongoId()
-      .withMessage("No es un id de mongo válido"),
-
-    body("price")
-      .optional()
-      .isFloat({ min: 0 })
-      .withMessage("El precio no puede ser menor a 0"),
-
-    body("stock")
-      .optional()
-      .isInt({ min: 0 })
-      .withMessage("El stock no puede ser menor a 0"),
-
-    body("available")
-      .optional()
-      .isBoolean()
-      .withMessage("Disponible debe ser booleano"),
-
+    ...createProductRules,
     handleValidationErrors,
   ],
   createProduct
 );
 
-router.put(
+router.patch(
   "/:id",
   [
     authenticate,
-
-    param("id", "No es un id válido").isMongoId(),
-    param("id").custom(validateProductId),
-
-    body("name").optional().isString().trim(),
-    body("category").optional().isMongoId().withMessage("No es un id de mongo válido"),
-
-    body("price")
-      .optional()
-      .isFloat({ min: 0 })
-      .withMessage("El precio no puede ser menor a 0"),
-
-    body("stock")
-      .optional()
-      .isInt({ min: 0 })
-      .withMessage("El stock no puede ser menor a 0"),
-
-    body("available")
-      .optional()
-      .isBoolean()
-      .withMessage("Disponible debe ser booleano"),
-
+    ...productIdParamRules,
+    ...updateProductRules,
     handleValidationErrors,
+    validateProductId,
   ],
   updateProduct
 );
@@ -89,11 +47,9 @@ router.delete(
   "/:id",
   [
     authenticate,
-
-    param("id", "No es un id válido").isMongoId(),
-    param("id").custom(validateProductId),
-
+    ...productIdParamRules,
     handleValidationErrors,
+    validateProductId,
   ],
   deleteProduct
 );
