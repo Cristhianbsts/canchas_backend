@@ -1,36 +1,18 @@
-import express from "express";
-import cors from "cors";
-import morgan from "morgan";
-import cookieParser from "cookie-parser";
+import { Router } from "express";
+import {
+  searchProducts,
+  searchCategories,
+  searchAll,
+} from "../controllers/search.controller.js";
 
-import registerRouter from "./routes/register.routes.js";
-import loginRouter from "./routes/login.routes.js";
-import userRouter from "./routes/user.routes.js";
+import { validateSearchQuery } from "../middlewares/search.middleware.js";
 
-import fieldRoutes from "./routes/field.routes.js";
-import categoryRoutes from "./routes/categories.routes.js";
-import productRoutes from "./routes/products.routes.js";
-import searchRoutes from "./routes/search.routes.js";
+const router = Router();
 
-const app = express();
+router.get("/products", validateSearchQuery, searchProducts);
 
-app.use(morgan("dev"));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(cookieParser());
-app.use(cors());
+router.get("/categories", validateSearchQuery, searchCategories);
 
-app.use("/api/register", registerRouter);
-app.use("/api/login", loginRouter);
-app.use("/api/users", userRouter);
+router.get("/all", validateSearchQuery, searchAll);
 
-app.use("/api/fields", fieldRoutes);
-app.use("/api/categories", categoryRoutes);
-app.use("/api/products", productRoutes);
-app.use("/api/search", searchRoutes);
-
-app.get("/index", (req, res) => {
-  res.status(200).json({ ok: true });
-});
-
-export default app;
+export default router;
