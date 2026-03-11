@@ -53,24 +53,32 @@ const createPayment = async (req, res) => {
     */
 
     if (type === "booking") {
-
       const booking = await Book.findById(id).populate("field");
-
+    
       if (!booking) {
         return res.status(404).json({
-          ok:false,
-          msg:"Reserva no encontrada"
+          ok: false,
+          msg: "Reserva no encontrada",
         });
       }
-
+    
+      if (!booking.field) {
+        return res.status(404).json({
+          ok: false,
+          msg: "Cancha no encontrada para esta reserva",
+        });
+      }
+    
       item = {
-        title: `Reserva cancha ${booking.field?.name || ""} ${booking.date} ${booking.time}`,
+        title: `Reserva cancha ${booking.field.name} ${booking.date} ${booking.time}`,
         quantity: 1,
-        unit_price: 5000, 
-        currency_id: "ARS"
+        unit_price: booking.field.pricePerHour,
+        currency_id: "ARS",
       };
-
     }
+    
+    
+    
 
     /*
     =========================
