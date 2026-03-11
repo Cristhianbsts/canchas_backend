@@ -9,7 +9,7 @@ import {
   getProducts,
   updateProduct,
   deleteProduct,
-} from "../controllers/product.controller.js";
+} from "../controllers/products.controller.js";
 
 import {
   productIdParamRules,
