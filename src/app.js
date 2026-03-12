@@ -6,6 +6,7 @@ import cookieParser from "cookie-parser";
 import productsRouter from "./routes/products.routes.js";
 import categoriesRouter from "./routes/categories.routes.js";
 import ruteRegister from './rutes/ruteRegister.js'
+import nodemailerRouter from "./routes/nodemailer.routes.js"
 
 
 
@@ -15,12 +16,15 @@ app.use(morgan("dev"));
 app.use(express.json()); 
 app.use(express.urlencoded({extended: true})); 
 app.use(cookieParser())
-app.use(cors());
+app.use(cors({
+  origin: "http://localhost:5173"
+}));
 
 app.use("/api/products", productsRouter);
 app.use("/api/categories", categoriesRouter);
 app.use('/api/auth', ruteRegister )
 app.use("/api/auth",authRoutes)
+app.use("/api/contact", nodemailerRouter)
 
 
 
