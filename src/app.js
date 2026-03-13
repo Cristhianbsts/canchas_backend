@@ -2,8 +2,7 @@ import express from "express";
 import cors from "cors";
 import morgan from "morgan";
 import cookieParser from "cookie-parser";
-import path from "path";
-import { fileURLToPath } from "url";
+import nodemailerRouter from "./routes/nodemailer.routes.js"
 
 import registerRouter from "./routes/register.routes.js";
 import loginRouter from "./routes/login.routes.js";
@@ -17,15 +16,13 @@ import paymentRoutes from "./routes/payment.routes.js";
 
 const app = express();
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-
-app.use(morgan("dev"));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(cookieParser());
-app.use(cors());
+app.use(morgan("dev")); 
+app.use(express.json()); 
+app.use(express.urlencoded({extended: true})); 
+app.use(cookieParser())
+app.use(cors({
+  origin: "http://localhost:5173"
+}));
 
 app.use("/api/register", registerRouter);
 app.use("/api/login", loginRouter);
