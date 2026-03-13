@@ -90,11 +90,11 @@ const createPayment = async (req, res) => {
       body: {
         items: [item],
         back_urls: {
-          success: "http://localhost:5173/pago-exitoso",
-          failure: "http://localhost:5173/pago-error",
-          pending: "http://localhost:5173/pago-pendiente",
+          success: "http://localhost:3002/pago-exitoso.html",
+          failure: "http://localhost:3002/pago-error",
+          pending: "http://localhost:3002/pago-pendiente",
         },
-        auto_return: "approved",
+         auto_return: "approved",
       },
     });
 
