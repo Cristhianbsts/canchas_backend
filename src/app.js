@@ -5,6 +5,7 @@ import loginRouter from "./routes/login.routes.js"
 import cookieParser from "cookie-parser";
 import registerRouter from './routes/register.routes.js'
 import user from "./routes/user.routes.js"
+import routeBooking from "./routes/routeBooking.js"
 
 import fieldRoutes from "./routes/field.routes.js"
 
@@ -18,10 +19,11 @@ app.use(express.urlencoded({extended: true}));
 app.use(cors());
 
 
-app.use('/api/register', registerRouter )
-app.use("/api/login",loginRouter)
-app.use("/api/users",user)
+app.use('/api/register', registerRouter );
+app.use("/api/login",loginRouter);
+app.use("/api/users",user);
 app.use("/api/fields", fieldRoutes);
+app.use("/api/book",routeBooking);
 
 
 

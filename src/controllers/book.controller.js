@@ -40,12 +40,12 @@ const reserveCourt = async (req,res)=>{
     
          if(existingBooking){
             switch (time){
-               case 18 : existingBooking.time18hs = {status,userId}; break; 
-               case 19 : existingBooking.time19hs = {status,userId}; break;
-               case 20 : existingBooking.time20hs = {status,userId}; break;
-               case 21 : existingBooking.time21hs = {status,userId}; break;
-               case 22 : existingBooking.time22hs = {status,userId}; break;
-               case 23 : existingBooking.time23hs = {status,userId}; break;
+               case 18 : existingBooking.time18hs = {status,user:userId}; break; 
+               case 19 : existingBooking.time19hs = {status,user:userId}; break;
+               case 20 : existingBooking.time20hs = {status,user:userId}; break;
+               case 21 : existingBooking.time21hs = {status,user:userId}; break;
+               case 22 : existingBooking.time22hs = {status,user:userId}; break;
+               case 23 : existingBooking.time23hs = {status,user:userId}; break;
             }
             await Book.updateOne(
                 {_id: existingBooking._id},{ $set:existingBooking}

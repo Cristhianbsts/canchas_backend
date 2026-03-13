@@ -29,7 +29,13 @@ const handleErrorsValidation = (req, res , next )=>{
      check('email')
      .notEmpty().withMessage('Debe ingresar algun mail')
      .trim()
-     .isEmail().normalizeEmail().withMessage('Correo no valido'),
+     .isEmail().normalizeEmail().withMessage('Correo no valido')
+     .custom( async (email,{req})=>{
+      const  emailExist = await User.findOne({email})
+        if(!req.userExist && emailExist){
+            throw new Error("El mail ingresado ya esta asociado a otra cuenta")
+        }
+     }),
     check('password')
     .notEmpty().withMessage('Debe ingresar alguna contraseña')
     .trim()
@@ -46,6 +52,12 @@ const handleErrorsValidation = (req, res , next )=>{
     .trim()
     .isNumeric()
     .isLength({min:10,max:10})
+    .custom( async (phoneNumber,{req})=>{
+      const  phoneNumberExist = await User.findOne({phoneNumber})
+        if(!req.userExist && phoneNumberExist){
+            throw new Error("El numero de telefono ingresado ya esta asociado a otra cuenta")
+        }
+     })
     ,
     handleErrorsValidation
  ]  
