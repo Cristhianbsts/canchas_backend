@@ -26,10 +26,18 @@ const handleErrorsValidation = (req, res , next )=>{
         }
         return true;     
      }),
-     check('email')
-     .notEmpty().withMessage('Debe ingresar algun mail')
-     .trim()
-     .isEmail().normalizeEmail().withMessage('Correo no valido'),
+     check("email")
+  .notEmpty().withMessage("Debe ingresar algun mail")
+  .trim()
+  .isEmail().withMessage("Correo no valido")
+  .normalizeEmail()
+  .custom(async (email) => {
+    const userEmail = await User.findOne({ email });
+    if (userEmail) {
+      throw new Error("El email ya existe");
+    }
+    return true;
+  }),
     check('password')
     .notEmpty().withMessage('Debe ingresar alguna contraseña')
     .trim()

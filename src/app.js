@@ -12,6 +12,7 @@ import fieldRoutes from "./routes/field.routes.js";
 import categoryRoutes from "./routes/categories.routes.js";
 import productRoutes from "./routes/products.routes.js";
 import searchRoutes from "./routes/search.routes.js";
+import paymentRoutes from "./routes/payment.routes.js";
 
 const app = express();
 
@@ -31,13 +32,8 @@ app.use("/api/fields", fieldRoutes);
 app.use("/api/categories", categoryRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/search", searchRoutes);
-app.use("/api/products", productsRouter);
-app.use("/api/categories", categoriesRouter);
-app.use('/api/auth', ruteRegister )
-app.use("/api/auth",authRoutes)
-app.use("/api/contact", nodemailerRouter)
-
-
+app.use("/api/payment", paymentRoutes);
+app.use(express.static(path.join(__dirname, "../api")));
 
 app.get("/index", (req, res) => {
   res.status(200).json({ ok: true });
