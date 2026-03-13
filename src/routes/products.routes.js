@@ -1,64 +1,56 @@
 import { Router } from "express";
 
+import { authenticate } from "../middlewares/token.middleware.js";
+import { handleValidationErrors } from "../middlewares/error.middleware.js";
+import { validateProductId } from "../middlewares/products.middleware.js";
+
 import {
-  getProducts,
-  getProductById,
   createProduct,
+  getProducts,
   updateProduct,
   deleteProduct,
-  adminGetAllProducts,
 } from "../controllers/products.controller.js";
 
-// ✅ Usá el que exista en tu proyecto:
-// import {
-//   createProductRules,
-//   updateProductRules,
-//   productIdParamRules,
-//   listProductsQueryRules,
-// } from "../validators/product.schemas.js"; // (singular)
-
 import {
+  productIdParamRules,
   createProductRules,
   updateProductRules,
-  productIdParamRules,
-  listProductsQueryRules,
-} from "../validators/products.schemas.js"; // (plural)
-
-// ❌ Por ahora NO los tenés, dejalos comentados:
-// import { validate } from "../middlewares/validate.middleware.js";
-// import { requireAuth } from "../middlewares/auth.middleware.js";
-// import { requireRole } from "../middlewares/role.middleware.js";
+} from "../validators/products.rules.js";
 
 const router = Router();
 
-/**
- * IMPORTANTE: rutas más específicas antes que "/:id"
- * (si no, "admin" entra como id)
- */
+router.get("/", getProducts);
 
-// Admin (por ahora público para test)
-router.get("/admin/all", adminGetAllProducts);
+router.post(
+  "/",
+  [
+    authenticate,
+    ...createProductRules,
+    handleValidationErrors,
+  ],
+  createProduct
+);
 
-/**
- * Públicos
- */
-router.get("/", /* listProductsQueryRules, validate, */ getProducts);
-router.get("/:id", /* productIdParamRules, validate, */ getProductById);
-
-/**
- * CRUD (por ahora público para test)
- */
-router.post("/", /* requireAuth, requireRole("ADMIN"), createProductRules, validate, */ createProduct);
-
-router.put(
+router.patch(
   "/:id",
-  /* requireAuth, requireRole("ADMIN"), productIdParamRules, updateProductRules, validate, */
+  [
+    authenticate,
+    ...productIdParamRules,
+    ...updateProductRules,
+    handleValidationErrors,
+    validateProductId,
+  ],
   updateProduct
 );
 
 router.delete(
   "/:id",
-  /* requireAuth, requireRole("ADMIN"), productIdParamRules, validate, */
+  [
+    authenticate,
+    ...productIdParamRules,
+    handleValidationErrors,
+    validateProductId,
+  ],
   deleteProduct
 );
 

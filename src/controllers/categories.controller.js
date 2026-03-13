@@ -1,57 +1,131 @@
 import Category from "../models/Category.js";
-import asyncHandler from "../utils/asyncHandler.js";
-import createError from "../utils/createError.js";
-import { ok } from "../utils/apiResponse.js";
 
-export const getCategories = asyncHandler(async (req, res) => {
-  const categories = await Category.find({ active: true }).sort({ name: 1 });
-  return ok(res, categories, "Categorías obtenidas");
-});
-
-export const getCategoryById = asyncHandler(async (req, res) => {
-  const { id } = req.params;
-  const category = await Category.findOne({ _id: id, active: true });
-  if (!category) throw createError(404, "Categoría no encontrada");
-  return ok(res, category, "Categoría obtenida");
-});
-
-export const createCategory = asyncHandler(async (req, res) => {
+const getCategories = async (req, res) => {
   try {
-    const created = await Category.create(req.body);
-    return res.status(201).json({ ok: true, message: "Categoría creada", data: created });
+    const query = { active: true };
+
+    const [total, categories] = await Promise.all([
+      Category.countDocuments(query),
+      Category.find(query),
+    ]);
+
+    res.json({
+      ok: true,
+      total,
+      categories,
+    });
+  } catch (error) {
+    res.status(500).json({
+      ok: false,
+      message: error.message,
+    });
+  }
+};
+
+const createCategory = async (req, res) => {
+  try {
+    const name = String(req.body.name ?? "").trim();
+
+    const category = await Category.create({
+      name,
+      slug: name,
+    });
+
+    res.status(201).json({
+      ok: true,
+      message: "Categoría creada",
+      category,
+    });
   } catch (error) {
     if (error?.code === 11000) {
-      throw createError(400, "Ya existe una categoría con ese nombre/slug");
+      return res.status(400).json({
+        ok: false,
+        message: "Ya existe una categoría con ese nombre",
+      });
     }
-    throw error;
+
+    res.status(500).json({
+      ok: false,
+      message: error.message,
+    });
   }
-});
+};
 
-export const updateCategory = asyncHandler(async (req, res) => {
-  const { id } = req.params;
+const updateCategory = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const name = String(req.body.name ?? "").trim();
 
-  const updated = await Category.findByIdAndUpdate(id, req.body, {
-    new: true,
-    runValidators: true,
-  });
+    const data = {
+      name,
+      slug: name,
+    };
 
-  if (!updated) throw createError(404, "Categoría no encontrada");
-  return ok(res, updated, "Categoría actualizada");
-});
+    const category = await Category.findByIdAndUpdate(id, data, {
+      new: true,
+      runValidators: true,
+    });
 
-export const deleteCategory = asyncHandler(async (req, res) => {
-  const { id } = req.params;
+    if (!category || category.active === false) {
+      return res.status(404).json({
+        ok: false,
+        message: "Categoría no encontrada",
+      });
+    }
 
-  const category = await Category.findById(id);
-  if (!category) throw createError(404, "Categoría no encontrada");
+    res.json({
+      ok: true,
+      message: "Categoría actualizada",
+      category,
+    });
+  } catch (error) {
+    if (error?.code === 11000) {
+      return res.status(400).json({
+        ok: false,
+        message: "Ya existe una categoría con ese nombre",
+      });
+    }
 
-  category.active = false;
-  await category.save();
+    res.status(500).json({
+      ok: false,
+      message: error.message,
+    });
+  }
+};
 
-  return ok(res, category, "Categoría desactivada");
-});
+const deleteCategory = async (req, res) => {
+  try {
+    const { id } = req.params;
 
-export const adminGetAllCategories = asyncHandler(async (req, res) => {
-  const categories = await Category.find().sort({ createdAt: -1 });
-  return ok(res, categories, "Categorías (admin) obtenidas");
-});
+    const category = await Category.findByIdAndUpdate(
+      id,
+      { active: false },
+      { new: true }
+    );
+
+    if (!category) {
+      return res.status(404).json({
+        ok: false,
+        message: "Categoría no encontrada",
+      });
+    }
+
+    res.json({
+      ok: true,
+      message: "Categoría eliminada",
+      category,
+    });
+  } catch (error) {
+    res.status(500).json({
+      ok: false,
+      message: error.message,
+    });
+  }
+};
+
+export {
+  getCategories,
+  createCategory,
+  updateCategory,
+  deleteCategory,
+};
