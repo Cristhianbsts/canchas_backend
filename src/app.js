@@ -1,6 +1,9 @@
 import express from "express";
 import cors from "cors";
 import morgan from "morgan";
+import { errorHandler } from "./middlewares/error.middleware.js";
+import {ApiError} from "./utils/createError.js"
+
 import fileUpload from "express-fileupload";
 import cookieParser from "cookie-parser";
 import nodemailerRouter from "./routes/nodemailer.routes.js"
@@ -49,6 +52,14 @@ app.use(express.static(path.join(__dirname, "../api")));
 app.get("/index", (req, res) => {
   res.status(200).json({ ok: true });
 });
+app.use((req, res, next) => {
+  return res.status(404).json({
+    ok: false,
+    status: 404,
+    message: `Ruta no encontrada: ${req.method} ${req.originalUrl}`,
+  });
+})
+app.use(errorHandler)
 
 export default app;
 
