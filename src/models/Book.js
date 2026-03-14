@@ -13,7 +13,7 @@ const BookSchema = Schema (
             required: [true, "Debes elegir una cancha"],
         },
         date: {
-            type: date,
+            type: Date,
             required: [true, "La fecha de reserva es obligatoria"],
         },
         time: {

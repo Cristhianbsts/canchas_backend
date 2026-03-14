@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { handleControllerRegister } from "../controllers/controllerRegister.js";
+import { handleControllerRegister } from "../controllers/register.controller.js";
 import { formRegisterValidation } from "../middlewares/register.middleware.js";
 
 

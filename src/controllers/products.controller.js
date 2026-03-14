@@ -1,0 +1,187 @@
+import Product from "../models/Product.js";
+
+// obtener productos
+const getProducts = async (req, res) => {
+  try {
+    const { limit = 5, offset = 0 } = req.query;
+
+    const parsedLimit = Number(limit);
+    const parsedOffset = Number(offset);
+
+    const query = { active: true };
+
+    const [total, items] = await Promise.all([
+      Product.countDocuments(query),
+      Product.find(query)
+        .limit(parsedLimit)
+        .skip(parsedOffset)
+        .populate("category", "name"),
+    ]);
+
+    res.json({ total, items });
+  } catch (error) {
+    res.status(500).json({
+      ok: false,
+      message: error.message,
+    });
+  }
+};
+
+// crear producto
+const createProduct = async (req, res) => {
+  try {
+    const { price, stock, category, description, image } = req.body;
+
+    const name = String(req.body.name).trim().toUpperCase();
+
+    const existingItem = await Product.findOne({
+      name,
+      category,
+      active: true,
+    });
+
+    if (existingItem) {
+      return res.status(400).json({
+        ok: false,
+        message: `El producto ${name} ya existe`,
+      });
+    }
+
+    const data = {
+      name,
+      category,
+      price,
+      stock,
+      description,
+      image,
+      user: req.user._id,
+    };
+
+    const item = await Product.create(data);
+
+    res.status(201).json({
+      ok: true,
+      message: `Producto ${item.name} creado`,
+      item,
+    });
+  } catch (error) {
+    if (error?.code === 11000) {
+      return res.status(400).json({
+        ok: false,
+        message: "Ya existe un producto con ese nombre",
+      });
+    }
+
+    res.status(500).json({
+      ok: false,
+      message: error.message,
+    });
+  }
+};
+
+// actualizar producto
+const updateProduct = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const { price, stock, category, description, image } = req.body;
+
+    const data = {
+      user: req.user._id,
+    };
+
+    if (price !== undefined) data.price = price;
+    if (stock !== undefined) data.stock = stock;
+    if (category !== undefined) data.category = category;
+    if (description !== undefined) data.description = description;
+    if (image !== undefined) data.image = image;
+
+    if (req.body.name) {
+      data.name = String(req.body.name).trim().toUpperCase();
+    }
+
+    if (data.name) {
+      const existingItem = await Product.findOne({
+        name: data.name,
+        category,
+        active: true,
+        _id: { $ne: id },
+      });
+
+      if (existingItem) {
+        return res.status(400).json({
+          ok: false,
+          message: "Ya existe un producto con ese nombre",
+        });
+      }
+    }
+
+    const updatedItem = await Product.findByIdAndUpdate(id, data, {
+      new: true,
+      runValidators: true,
+    });
+
+    if (!updatedItem || updatedItem.active === false) {
+      return res.status(404).json({
+        ok: false,
+        message: "Producto no encontrado",
+      });
+    }
+
+    res.json({
+      ok: true,
+      message: "Producto actualizado",
+      item: updatedItem,
+    });
+  } catch (error) {
+    if (error?.code === 11000) {
+      return res.status(400).json({
+        ok: false,
+        message: "Ya existe un producto con ese nombre",
+      });
+    }
+
+    res.status(500).json({
+      ok: false,
+      message: error.message,
+    });
+  }
+};
+
+// eliminar producto (soft delete)
+const deleteProduct = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const deletedItem = await Product.findByIdAndUpdate(
+      id,
+      { active: false },
+      { new: true }
+    );
+
+    if (!deletedItem) {
+      return res.status(404).json({
+        ok: false,
+        message: "Producto no encontrado",
+      });
+    }
+
+    res.json({
+      ok: true,
+      message: "Producto eliminado",
+      item: deletedItem,
+    });
+  } catch (error) {
+    res.status(500).json({
+      ok: false,
+      message: error.message,
+    });
+  }
+};
+
+export {
+  createProduct,
+  getProducts,
+  updateProduct,
+  deleteProduct,
+};
