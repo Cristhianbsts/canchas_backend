@@ -1,7 +1,7 @@
 import { Router } from "express";
 
 import { authenticate } from "../middlewares/token.middleware.js";
-import handleValidationErrors from "../middlewares/error.middleware.js";
+import { handleValidationErrors } from "../middlewares/error.middleware.js";
 
 import {
   validateCart,
