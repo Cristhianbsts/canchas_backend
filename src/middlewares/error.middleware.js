@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import {validationResult } from "express-validator";
-import { ApiError } from "../utils/createError";
+import { createError } from "../utils/createError.js";
 
 const errorHandler = (err, req, res, next) => {
 
@@ -10,15 +10,15 @@ const errorHandler = (err, req, res, next) => {
 
     console.error(err.stack);
 
-    if (err instanceof ApiError) {
+    if (err instanceof createError) {
         return res.status(err.statusCode || 500).json({
             ok: false,
-            status: err.statusCode || 500,
+            status: err.status || 500,
             message: err.message
         });
     }
 
-    let status = err.statusCode || err.status || 500;
+    let status = err.status || err.status || 500;
     let message = err.message || "Error interno del servidor";
     let details;
 

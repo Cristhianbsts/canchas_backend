@@ -2,12 +2,15 @@ import express from "express";
 import cors from "cors";
 import morgan from "morgan";
 import { errorHandler } from "./middlewares/error.middleware.js";
-import {ApiError} from "./utils/createError.js"
+
+import path from "path";
+import { fileURLToPath } from "url";
+
 import fileUpload from "express-fileupload";
 import cookieParser from "cookie-parser";
 
 
-import routeBooking from "./routes/routeBooking.js"
+import routeBooking from "./routes/book.route.js"
 import nodemailerRouter from "./routes/nodemailer.routes.js"
 import registerRouter from "./routes/register.routes.js";
 import loginRouter from "./routes/login.routes.js";
@@ -53,11 +56,8 @@ app.use("/api/search", searchRoutes);
 app.use("/api/payment", paymentRoutes);
 app.use("/api/cart", cartRouter);
 app.use("/api/book",routeBooking);
+app.use("/api/nodemailer", nodemailerRouter)
 app.use(express.static(path.join(__dirname, "../api")));
-
-app.get("/index", (req, res) => {
-  res.status(200).json({ ok: true });
-});
 app.use((req, res, next) => {
   return res.status(404).json({
     ok: false,
@@ -66,6 +66,11 @@ app.use((req, res, next) => {
   });
 })
 app.use(errorHandler)
+
+app.get("/index", (req, res) => {
+  res.status(200).json({ ok: true });
+});
+
 
 export default app;
 
