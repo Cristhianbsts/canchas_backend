@@ -1,8 +1,9 @@
 import User from "../models/User.js";
+import { verifyToken } from "../utils/jwt.js";
 
 export const authenticate = async (req, res, next) => {
   try {
-    const token = res.cookies.token;
+    const token = req.cookies.token;
 
     if (!token) {
       return res.status(401).json({
@@ -11,9 +12,9 @@ export const authenticate = async (req, res, next) => {
       });
     }
 
-    const decoded = virifyToken(token);
+    const decoded = verifyToken(token);
 
-    const user = await User.findById(decoded.userId).select("--password");
+    const user = await User.findById(decoded.userId).select("-password");
 
     if (!user) {
       return res.status(401).json({
