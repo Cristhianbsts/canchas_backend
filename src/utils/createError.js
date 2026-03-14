@@ -1,3 +1,10 @@
+class ApiError extends Error{
+    constructor (message, statusCode){
+        super(message)
+        this.statusCode= statusCode
+    }
+}
+
 const createError = (status = 500, message = "Error interno", details = null) => {
     const err = new Error(message);
     err.status = status;
@@ -5,4 +12,4 @@ const createError = (status = 500, message = "Error interno", details = null) =>
     return err;
   };
   
-  export default createError;
+  export {createError, ApiError};
