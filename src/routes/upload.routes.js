@@ -1,9 +1,6 @@
 import { Router } from "express";
 import { authenticate } from "../middlewares/token.middleware.js";
-import {
-  updateImageField,
-  updateImageProduct,
-} from "../controllers/upload.controller.js";
+import { updateImageField, updateImageProduct } from "../controllers/upload.controller.js";
 import { check } from "express-validator";
 import { handleValidationErrors } from "../middlewares/error.middleware.js";
 import { validateImageFile } from "../middlewares/upload.middleware.js";
@@ -14,7 +11,7 @@ router.put(
   "/product/:id",
   [
     authenticate,
-    //Validar rol
+    //Validar rol 
     validateImageFile,
     check("id", "No es un id de mongo").isMongoId(),
     handleValidationErrors,
@@ -33,5 +30,4 @@ router.put(
 
   updateImageField,
 );
-
 export default router;
