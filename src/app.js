@@ -3,9 +3,11 @@ import cors from "cors";
 import morgan from "morgan";
 import { errorHandler } from "./middlewares/error.middleware.js";
 import {ApiError} from "./utils/createError.js"
-
 import fileUpload from "express-fileupload";
 import cookieParser from "cookie-parser";
+
+
+import routeBooking from "./routes/routeBooking.js"
 import nodemailerRouter from "./routes/nodemailer.routes.js"
 import registerRouter from "./routes/register.routes.js";
 import loginRouter from "./routes/login.routes.js";
@@ -24,11 +26,14 @@ const app = express();
 app.use(morgan("dev")); 
 app.use(express.json()); 
 app.use(express.urlencoded({extended: true})); 
+
+
 app.use(cookieParser())
 app.use(fileUpload())
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
 
 app.use(
   cors({
@@ -47,6 +52,7 @@ app.use("/api/products", productRoutes);
 app.use("/api/search", searchRoutes);
 app.use("/api/payment", paymentRoutes);
 app.use("/api/cart", cartRouter);
+app.use("/api/book",routeBooking);
 app.use(express.static(path.join(__dirname, "../api")));
 
 app.get("/index", (req, res) => {
