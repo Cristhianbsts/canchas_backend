@@ -30,7 +30,7 @@ const sendEmail = async (req, res) => {
         subject: `Nuevo mensaje de ${nombre}`,
         html: `<h1>Nuevo mensaje de ${nombre}</h1>
         <h3>Datos:</h3>
-        <ul style:"list-style:none">
+        <ul>
             <li><p><strong>Nombre:</strong> ${nombre}</p></li>
             <li><p><strong>Email:</strong> ${email}</p></li>
             <li><p><strong>Teléfono:</strong> ${telefono}</p></li>

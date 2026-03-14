@@ -31,10 +31,8 @@ app.use("/api/fields", fieldRoutes);
 app.use("/api/categories", categoryRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/search", searchRoutes);
-app.use("/api/products", productsRouter);
-app.use("/api/categories", categoriesRouter);
-app.use('/api/auth', ruteRegister )
-app.use("/api/auth",authRoutes)
+app.use('/api/auth', registerRouter )
+app.use("/api/auth", loginRouter)
 app.use("/api/contact", nodemailerRouter)
 
 
