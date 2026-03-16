@@ -7,7 +7,6 @@ const cartSchema = new Schema(
       ref: "User",
       required: true,
     },
-
     items: [
       {
         product: {
@@ -22,24 +21,18 @@ const cartSchema = new Schema(
         },
       },
     ],
-
     active: {
       type: Boolean,
       default: true,
     },
-
     paymentProcessed: {
       type: Boolean,
       default: false,
     },
-
-    // opcional pero útil: guarda la preferencia generada en Mercado Pago
     mpPreferenceId: {
       type: String,
       default: null,
     },
-
-    // opcional pero útil: guarda el id del pago aprobado
     mpPaymentId: {
       type: String,
       default: null,
