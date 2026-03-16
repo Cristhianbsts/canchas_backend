@@ -1,46 +1,62 @@
+import { v2 as cloudinary } from "cloudinary";
 import Field from "../models/Field.js";
+
+
+const DEFAULT_IMAGE = "https://images.unsplash.com/photo-1529900748604-07564a03e7a6?q=80&w=500&auto=format&fit=crop";
 
 const getFields = async (req, res) => {
     try {
-        const { limite = 10, desde = 0} = req.query;
+        const { limite = 50, desde = 0 } = req.query;
 
         const [total, fields] = await Promise.all([
-            Field.countDocuments ({ isDeleted: false}),
-            Field.find({ isDeleted: false})
-            .limit(Number(limite))
-            .skip(Number(desde))
+            Field.countDocuments({ isDeleted: false }),
+            Field.find({ isDeleted: false })
+                .limit(Number(limite))
+                .skip(Number(desde))
         ]);
-    res.status(200).json({
-        ok: true,
-        total,
-        fields
-    });
+        res.status(200).json({
+            ok: true,
+            total,
+            fields 
+        });
     } catch (error) {
         res.status(500).json({
             ok: false,
             message: "Error al obtener las canchas",
             error: error.message
         });
-        
     }
 };
 
 const createField = async (req, res) => {
     try {
-        const {pricePerHour} = req.body;
+        const { pricePerHour } = req.body;
         const name = req.body.name.toUpperCase();
 
         const fieldDb = await Field.findOne({ name });
-        if(fieldDb){
+        if (fieldDb) {
             return res.status(400).json({
                 ok: false,
-            message: `La cancha ${name} ya existe en el complejo.`,
+                message: `La cancha ${name} ya existe en el complejo.`,
             });
+        }
+
+        
+        let imageUrl = DEFAULT_IMAGE;
+
+        if (req.files && req.files.archivo) {
+            const file = req.files.archivo;
+            const dataUri = `data:${file.mimetype};base64,${file.data.toString("base64")}`;
+            const result = await cloudinary.uploader.upload(dataUri, {
+                folder: 'canchas'
+            });
+            imageUrl = result.secure_url;
         }
 
         const newField = new Field({
             name: name,
-            pricePerHour
+            pricePerHour,
+            image: imageUrl // Guardamos la URL resultante
         });
 
         await newField.save();
@@ -56,20 +72,31 @@ const createField = async (req, res) => {
             ok: false,
             message: "Error al crear la cancha.",
             error: error.message
-        });        
+        });
     }
 };
 
-const updateField = async ( req, res) => {
+const updateField = async (req, res) => {
     try {
         const { id } = req.params;
-        const data = req.body;
+        const { name, pricePerHour, active } = req.body;
+
+       
+        let data = { active };
+        if (name) data.name = name.toUpperCase();
+        if (pricePerHour) data.pricePerHour = pricePerHour;
+
         
-        if (data.name){
-            data.name = data.name.toUpperCase();
+        if (req.files && req.files.archivo) {
+            const file = req.files.archivo;
+            const dataUri = `data:${file.mimetype};base64,${file.data.toString("base64")}`;
+            const result = await cloudinary.uploader.upload(dataUri, {
+                folder: 'canchas'
+            });
+            data.image = result.secure_url;
         }
 
-        const fieldUpdated = await Field.findByIdAndUpdate(id, data, { new : true});
+        const fieldUpdated = await Field.findByIdAndUpdate(id, data, { new: true });
 
         if (!fieldUpdated) {
             return res.status(404).json({
@@ -86,29 +113,28 @@ const updateField = async ( req, res) => {
 
     } catch (error) {
         res.status(500).json({
-            ok:false,
+            ok: false,
             message: "Error al actualizar la cancha",
             error: error.message
         });
     }
 };
 
-
 const deleteField = async (req, res) => {
     try {
         const { id } = req.params;
 
-        const fieldDeleted = await Field.findByIdAndUpdate(id, { isDeleted: true }, { new: true});
+        const fieldDeleted = await Field.findByIdAndUpdate(id, { isDeleted: true }, { new: true });
 
-        if (!fieldDeleted){
+        if (!fieldDeleted) {
             return res.status(404).json({
-                ok:false,
+                ok: false,
                 message: "No se encontró la cancha con ese ID."
             });
         }
 
         res.status(200).json({
-            ok:true,
+            ok: true,
             message: "Cancha dada de baja correctamente",
             field: fieldDeleted
         });
@@ -116,13 +142,11 @@ const deleteField = async (req, res) => {
 
     } catch (error) {
         res.status(500).json({
-            ok:false,
+            ok: false,
             message: "Error al eliminar la cancha",
             error: error.message
         });
     }
 };
-
-
 
 export { getFields, createField, updateField, deleteField };

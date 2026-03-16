@@ -1,5 +1,8 @@
+import { v2 as cloudinary } from "cloudinary";
 import Product from "../models/Product.js";
 
+
+const DEFAULT_IMAGE = "https://res.cloudinary.com/dp7qbi976/image/upload/v1733325605/v7fiv6xngp8o78v7a3sd.webp";
 
 const getProducts = async (req, res) => {
   try {
@@ -27,11 +30,9 @@ const getProducts = async (req, res) => {
   }
 };
 
-
 const createProduct = async (req, res) => {
   try {
-    const { price, stock, category, description, image, active } = req.body;
-
+    const { price, stock, category, description, active } = req.body;
     const name = String(req.body.name).trim().toUpperCase();
 
     const existingItem = await Product.findOne({
@@ -47,6 +48,19 @@ const createProduct = async (req, res) => {
       });
     }
 
+    // --- LÓGICA DE CLOUDINARY PARA CREAR ---
+    let imageUrl = DEFAULT_IMAGE;
+
+    if (req.files && req.files.archivo) {
+      const file = req.files.archivo;
+      const dataUri = `data:${file.mimetype};base64,${file.data.toString("base64")}`;
+      const result = await cloudinary.uploader.upload(dataUri, {
+        folder: 'productos' 
+      });
+      imageUrl = result.secure_url;
+    }
+    // ---------------------------------------
+
     const data = {
       name,
       category,
@@ -54,7 +68,7 @@ const createProduct = async (req, res) => {
       stock,
       description,
       active,
-      image,
+      image: imageUrl, 
       user: req.user._id,
     };
 
@@ -80,12 +94,10 @@ const createProduct = async (req, res) => {
   }
 };
 
-
 const updateProduct = async (req, res) => {
   try {
     const { id } = req.params;
-
-    const { price, stock, category, description, image, active } = req.body;
+    const { price, stock, category, description, active } = req.body;
 
     const data = {
       user: req.user._id,
@@ -95,7 +107,6 @@ const updateProduct = async (req, res) => {
     if (stock !== undefined) data.stock = stock;
     if (category !== undefined) data.category = category;
     if (description !== undefined) data.description = description;
-    if (image !== undefined) data.image = image;
     if (active !== undefined) data.active = active;
 
     if (req.body.name) {
@@ -117,6 +128,17 @@ const updateProduct = async (req, res) => {
         });
       }
     }
+
+    // --- LÓGICA DE CLOUDINARY PARA ACTUALIZAR ---
+    if (req.files && req.files.archivo) {
+      const file = req.files.archivo;
+      const dataUri = `data:${file.mimetype};base64,${file.data.toString("base64")}`;
+      const result = await cloudinary.uploader.upload(dataUri, {
+        folder: 'productos'
+      });
+      data.image = result.secure_url; 
+    }
+    // ------------------------------------------
 
     const updatedItem = await Product.findByIdAndUpdate(id, data, {
       new: true,
