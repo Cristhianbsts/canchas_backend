@@ -7,7 +7,41 @@ const client = new MercadoPagoConfig({
   accessToken: process.env.MERCADOPAGO_ACCESS_TOKEN,
 });
 
+/* =========================================================
+   HELPERS
+========================================================= */
+
+const validateQuantity = (quantity) => {
+  const parsedQuantity = Number(quantity);
+
+  if (!Number.isInteger(parsedQuantity) || parsedQuantity <= 0) {
+    const error = new Error("La cantidad debe ser un número entero mayor a 0");
+    error.statusCode = 400;
+    throw error;
+  }
+
+  return parsedQuantity;
+};
+
+const getActiveCartByUser = async (userId) => {
+  const cart = await Cart.findOne({
+    user: userId,
+    active: true,
+  }).populate({
+    path: "items.product",
+    select: "name price stock active",
+  });
+
+  return cart;
+};
+
+/* =========================================================
+   PRODUCTO
+========================================================= */
+
 const buildProductPaymentItem = async (id, quantity = 1) => {
+  const parsedQuantity = validateQuantity(quantity);
+
   const product = await Product.findById(id);
 
   if (!product || product.active === false) {
@@ -16,7 +50,13 @@ const buildProductPaymentItem = async (id, quantity = 1) => {
     throw error;
   }
 
-  if (product.stock < quantity) {
+  if (typeof product.price !== "number" || product.price <= 0) {
+    const error = new Error("El producto no tiene un precio válido");
+    error.statusCode = 400;
+    throw error;
+  }
+
+  if (product.stock < parsedQuantity) {
     const error = new Error("Stock insuficiente");
     error.statusCode = 400;
     throw error;
@@ -24,11 +64,15 @@ const buildProductPaymentItem = async (id, quantity = 1) => {
 
   return {
     title: product.name,
-    quantity,
+    quantity: parsedQuantity,
     unit_price: product.price,
     currency_id: "ARS",
   };
 };
+
+/* =========================================================
+   RESERVA
+========================================================= */
 
 const buildBookingPaymentItem = async (id, userId) => {
   const booking = await Book.findById(id).populate("field");
@@ -75,15 +119,21 @@ const buildBookingPaymentItem = async (id, userId) => {
   };
 };
 
-// NUEVO: arma todos los items del carrito
-const buildCartPaymentItems = async (userId) => {
-  const cart = await Cart.findOne({ user: userId, active: true }).populate({
-    path: "items.product",
-    select: "name price stock active",
-  });
+/* =========================================================
+   CARRITO
+========================================================= */
 
-  if (!cart || !cart.items.length) {
+const buildCartPaymentData = async (userId) => {
+  const cart = await getActiveCartByUser(userId);
+
+  if (!cart || !cart.items || cart.items.length === 0) {
     const error = new Error("El carrito está vacío");
+    error.statusCode = 400;
+    throw error;
+  }
+
+  if (cart.paymentProcessed === true) {
+    const error = new Error("Este carrito ya fue procesado");
     error.statusCode = 400;
     throw error;
   }
@@ -95,6 +145,12 @@ const buildCartPaymentItems = async (userId) => {
 
     if (!product || product.active === false) {
       const error = new Error("Hay productos inválidos en el carrito");
+      error.statusCode = 400;
+      throw error;
+    }
+
+    if (typeof product.price !== "number" || product.price <= 0) {
+      const error = new Error(`El producto ${product.name} no tiene precio válido`);
       error.statusCode = 400;
       throw error;
     }
@@ -113,12 +169,23 @@ const buildCartPaymentItems = async (userId) => {
     });
   }
 
-  return items;
+  return { cart, items };
 };
+
+/* =========================================================
+   CREAR PAGO
+========================================================= */
 
 const createPayment = async (req, res) => {
   try {
-    const { type, id, quantity = 1, userId } = req.body || {};
+    const { type, id, quantity = 1 } = req.body || {};
+
+    if (!req.user || !req.user._id) {
+      return res.status(401).json({
+        ok: false,
+        msg: "Usuario no autenticado",
+      });
+    }
 
     if (!type) {
       return res.status(400).json({
@@ -128,6 +195,8 @@ const createPayment = async (req, res) => {
     }
 
     let items = [];
+    let externalReference = null;
+    let cartToUpdate = null;
 
     if (type === "product") {
       if (!id) {
@@ -139,19 +208,26 @@ const createPayment = async (req, res) => {
 
       const item = await buildProductPaymentItem(id, quantity);
       items = [item];
+      externalReference = `product:${id}:user:${req.user._id}`;
     } else if (type === "booking") {
-      if (!id || !userId) {
+      if (!id) {
         return res.status(400).json({
           ok: false,
-          msg: "Debes enviar id y userId para pagar una reserva",
+          msg: "Debes enviar id de la reserva",
         });
       }
 
-      const item = await buildBookingPaymentItem(id, userId);
+      // IMPORTANTE:
+      // usamos req.user._id y NO userId del body
+      const item = await buildBookingPaymentItem(id, req.user._id);
       items = [item];
+      externalReference = `booking:${id}:user:${req.user._id}`;
     } else if (type === "cart") {
-      // toma el usuario autenticado desde el token
-      items = await buildCartPaymentItems(req.user._id);
+      const { cart, items: cartItems } = await buildCartPaymentData(req.user._id);
+
+      items = cartItems;
+      cartToUpdate = cart;
+      externalReference = String(cart._id);
     } else {
       return res.status(400).json({
         ok: false,
@@ -170,13 +246,21 @@ const createPayment = async (req, res) => {
           pending: "http://localhost:3001/pago-pendiente",
         },
         // auto_return: "approved",
+        external_reference: externalReference,
       },
     });
+
+    // Si el pago es del carrito, guardamos la preferencia creada
+    if (type === "cart" && cartToUpdate) {
+      cartToUpdate.mpPreferenceId = result.id;
+      await cartToUpdate.save();
+    }
 
     return res.status(200).json({
       ok: true,
       id: result.id,
       url: result.init_point,
+      sandboxUrl: result.sandbox_init_point || null,
     });
   } catch (error) {
     return res.status(error.statusCode || 500).json({
@@ -186,13 +270,16 @@ const createPayment = async (req, res) => {
   }
 };
 
-// ---------------------------------------------------
-// FUNCIÓN APARTE: descuenta stock cuando el pago fue aprobado
-// ---------------------------------------------------
-const processApprovedCartPayment = async (userId) => {
-  // Busca el carrito activo del usuario
-  const cart = await Cart.findOne({ user: userId, active: true }).populate({
+/* =========================================================
+   PROCESAR PAGO APROBADO DEL CARRITO
+   Esta función es para usarla cuando Mercado Pago confirme
+   que el pago fue aprobado.
+========================================================= */
+
+const processApprovedCartPayment = async (cartId, paymentId = null) => {
+  const cart = await Cart.findById(cartId).populate({
     path: "items.product",
+    select: "name price stock active",
   });
 
   if (!cart) {
@@ -207,50 +294,77 @@ const processApprovedCartPayment = async (userId) => {
     throw error;
   }
 
-  // Si ya fue procesado antes, no volver a descontar
+  // Evita procesar 2 veces el mismo carrito
   if (cart.paymentProcessed === true) {
     return {
       ok: true,
       message: "El pago ya fue procesado anteriormente",
+      cart,
     };
   }
 
-  // 1. Validar stock antes de tocar nada
+  // 1. Validar que todos los productos existan y tengan stock
   for (const item of cart.items) {
     const product = await Product.findById(item.product._id);
 
     if (!product) {
-      const error = new Error(`Producto no encontrado`);
+      const error = new Error("Producto no encontrado");
       error.statusCode = 404;
       throw error;
     }
 
+    if (product.active === false) {
+      const error = new Error(`El producto ${product.name} está inactivo`);
+      error.statusCode = 400;
+      throw error;
+    }
+
     if (product.stock < item.quantity) {
+      const error = new Error(`Stock insuficiente para el producto ${product.name}`);
+      error.statusCode = 400;
+      throw error;
+    }
+  }
+
+  // 2. Descontar stock de manera segura
+  for (const item of cart.items) {
+    const updatedProduct = await Product.findOneAndUpdate(
+      {
+        _id: item.product._id,
+        stock: { $gte: item.quantity },
+      },
+      {
+        $inc: { stock: -item.quantity },
+      },
+      {
+        new: true,
+      }
+    );
+
+    if (!updatedProduct) {
       const error = new Error(
-        `Stock insuficiente para el producto ${product.name}`
+        `No se pudo actualizar el stock de ${item.product.name}`
       );
       error.statusCode = 400;
       throw error;
     }
   }
 
-  // 2. Descontar stock
-  for (const item of cart.items) {
-    const product = await Product.findById(item.product._id);
-
-    product.stock -= item.quantity;
-    await product.save();
-  }
-
-  // 3. Marcar carrito como procesado / cerrado
+  // 3. Cerrar carrito y marcarlo como procesado
   cart.paymentProcessed = true;
   cart.active = false;
+
+  if (paymentId) {
+    cart.mpPaymentId = String(paymentId);
+  }
+
   await cart.save();
 
   return {
     ok: true,
     message: "Pago procesado y stock actualizado correctamente",
+    cart,
   };
 };
 
-export { createPayment,processApprovedCartPayment };
+export { createPayment, processApprovedCartPayment };
