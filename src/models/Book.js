@@ -1,17 +1,23 @@
 import { Schema, model } from "mongoose";
+import Field from "./Field.js";
 
 const BookSchema = Schema (
     {
 
         field: {
-            //type: Schema.Types.ObjectId,
-           // ref: "Field",
-           type:String,
+            type: Schema.Types.ObjectId,
+           ref: "Field",
+        // type:String,
             required: [true, "Debes elegir una cancha"],
         },
         date: {
             type:Date,
             required: [true, "La fecha de reserva es obligatoria"],
+        },
+
+        price:{
+            type: Number,
+            required: true,
         },
 
         time18hs: {

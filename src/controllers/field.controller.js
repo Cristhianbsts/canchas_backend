@@ -1,7 +1,5 @@
 import Field from "../models/Field.js";
 
-//obtener las canchas
-
 const getFields = async (req, res) => {
     try {
         const { limite = 10, desde = 0} = req.query;
@@ -27,7 +25,6 @@ const getFields = async (req, res) => {
     }
 };
 
-//crear una cancha
 const createField = async (req, res) => {
     try {
         const {pricePerHour} = req.body;
@@ -63,7 +60,6 @@ const createField = async (req, res) => {
     }
 };
 
-//actualizar una Cancha
 const updateField = async ( req, res) => {
     try {
         const { id } = req.params;
@@ -97,7 +93,7 @@ const updateField = async ( req, res) => {
     }
 };
 
-//Borrar una cancha
+
 const deleteField = async (req, res) => {
     try {
         const { id } = req.params;

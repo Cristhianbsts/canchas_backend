@@ -11,7 +11,6 @@ router.put(
   "/product/:id",
   [
     authenticate,
-    //Validar rol 
     validateImageFile,
     check("id", "No es un id de mongo").isMongoId(),
     handleValidationErrors,

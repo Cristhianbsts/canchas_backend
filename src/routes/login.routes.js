@@ -6,7 +6,7 @@ const router = Router();
 
 
 
-router.post("/login",validateLoginUser(),login)
+router.post("/",validateLoginUser(),login)
 
 
 export default router;

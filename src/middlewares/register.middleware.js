@@ -45,7 +45,7 @@ const handleErrorsValidation = (req, res , next )=>{
         minLowercase:1,
         minNumbers:1,
         minSymbols:1
-    })
+    }).withMessage('La contraseña debe tener al menos 10 caracteres, una mayúscula, una minúscula, un número y un símbolo')
     .escape(),
     check('phoneNumber')
     .notEmpty().withMessage('Debe ingresar algun numero')

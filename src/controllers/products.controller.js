@@ -1,6 +1,6 @@
 import Product from "../models/Product.js";
 
-// obtener productos
+
 const getProducts = async (req, res) => {
   try {
     const { limit = 5, offset = 0 } = req.query;
@@ -27,10 +27,10 @@ const getProducts = async (req, res) => {
   }
 };
 
-// crear producto
+
 const createProduct = async (req, res) => {
   try {
-    const { price, stock, category, description, image } = req.body;
+    const { price, stock, category, description, image, active } = req.body;
 
     const name = String(req.body.name).trim().toUpperCase();
 
@@ -53,6 +53,7 @@ const createProduct = async (req, res) => {
       price,
       stock,
       description,
+      active,
       image,
       user: req.user._id,
     };
@@ -79,12 +80,12 @@ const createProduct = async (req, res) => {
   }
 };
 
-// actualizar producto
+
 const updateProduct = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const { price, stock, category, description, image } = req.body;
+    const { price, stock, category, description, image, active } = req.body;
 
     const data = {
       user: req.user._id,
@@ -95,6 +96,7 @@ const updateProduct = async (req, res) => {
     if (category !== undefined) data.category = category;
     if (description !== undefined) data.description = description;
     if (image !== undefined) data.image = image;
+    if (active !== undefined) data.active = active;
 
     if (req.body.name) {
       data.name = String(req.body.name).trim().toUpperCase();
@@ -121,7 +123,7 @@ const updateProduct = async (req, res) => {
       runValidators: true,
     });
 
-    if (!updatedItem || updatedItem.active === false) {
+    if (!updatedItem) {
       return res.status(404).json({
         ok: false,
         message: "Producto no encontrado",
@@ -148,7 +150,6 @@ const updateProduct = async (req, res) => {
   }
 };
 
-// eliminar producto (soft delete)
 const deleteProduct = async (req, res) => {
   try {
     const { id } = req.params;

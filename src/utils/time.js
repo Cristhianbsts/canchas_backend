@@ -1,9 +1,6 @@
-// src/utils/time.js
-// Helpers para horarios tipo "HH:mm" usados en reservas
-
 export const isHHMM = (value) => {
     if (typeof value !== "string") return false;
-    // 00:00 a 23:59
+
     return /^([01]\d|2[0-3]):([0-5]\d)$/.test(value);
   };
   
@@ -21,8 +18,6 @@ export const isHHMM = (value) => {
     return `${hh}:${mm}`;
   };
   
-  // Devuelve true si los rangos se solapan:
-  // (startA < endB) && (endA > startB)
   export const overlaps = (startA, endA, startB, endB) => {
     const a1 = toMinutes(startA);
     const a2 = toMinutes(endA);
