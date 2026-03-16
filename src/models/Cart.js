@@ -1,57 +1,53 @@
-import mongoose from "mongoose";
+import { Schema, model } from "mongoose";
 
-const cartItemSchema = new mongoose.Schema(
-  {
-    product: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Product",
-      required: [true, "El producto es obligatorio"],
-    },
-    quantity: {
-      type: Number,
-      required: [true, "La cantidad es obligatoria"],
-      min: [1, "La cantidad mínima es 1"],
-      default: 1,
-    },
-    price: {
-      type: Number,
-      required: [true, "El precio es obligatorio"],
-      min: [0, "El precio no puede ser negativo"],
-    },
-    subtotal: {
-      type: Number,
-      required: true,
-      min: [0, "El subtotal no puede ser negativo"],
-    },
-  },
-  { _id: false }
-);
-
-const cartSchema = new mongoose.Schema(
+const cartSchema = new Schema(
   {
     user: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: Schema.Types.ObjectId,
       ref: "User",
-      required: [true, "El usuario es obligatorio"],
-      unique: true,
+      required: true,
     },
-    items: {
-      type: [cartItemSchema],
-      default: [],
-    },
-    total: {
-      type: Number,
-      default: 0,
-      min: [0, "El total no puede ser negativo"],
-    },
+
+    items: [
+      {
+        product: {
+          type: Schema.Types.ObjectId,
+          ref: "Product",
+          required: true,
+        },
+        quantity: {
+          type: Number,
+          required: true,
+          min: 1,
+        },
+      },
+    ],
+
     active: {
       type: Boolean,
       default: true,
     },
+
+    paymentProcessed: {
+      type: Boolean,
+      default: false,
+    },
+
+    // opcional pero útil: guarda la preferencia generada en Mercado Pago
+    mpPreferenceId: {
+      type: String,
+      default: null,
+    },
+
+    // opcional pero útil: guarda el id del pago aprobado
+    mpPaymentId: {
+      type: String,
+      default: null,
+    },
   },
-  { timestamps: true, autoIndex: true }
+  {
+    timestamps: true,
+  }
 );
 
-const Cart = mongoose.model("Cart", cartSchema);
-
-export default Cart;
+export default model("Cart", cartSchema);
