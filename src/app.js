@@ -22,6 +22,7 @@ import productRoutes from "./routes/products.routes.js";
 import searchRoutes from "./routes/search.routes.js";
 import paymentRoutes from "./routes/payment.routes.js";
 import uploadRouter from "./routes/upload.routes.js"
+import logoutRouter from "./routes/logout.routes.js"
 
 
 const app = express();
@@ -57,6 +58,7 @@ app.use("/api/payment", paymentRoutes);
 app.use("/api/cart", cartRouter);
 app.use("/api/book",routeBooking);
 app.use("/api/nodemailer", nodemailerRouter)
+app.use("/api/logout",logoutRouter)
 app.use(express.static(path.join(__dirname, "../api")));
 app.use((req, res, next) => {
   return res.status(404).json({
