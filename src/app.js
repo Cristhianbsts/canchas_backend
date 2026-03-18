@@ -58,7 +58,7 @@ app.use("/api/search", searchRoutes);
 app.use("/api/payment", paymentRoutes);
 app.use("/api/cart", cartRouter);
 app.use("/api/book",routeBooking);
-app.use("/api/nodemailer", nodemailerRouter)
+app.use("/api/contact", nodemailerRouter)
 app.use("/api/logout",logoutRouter)
 app.use(express.static(path.join(__dirname, "../api")));
 app.use((req, res, next) => {
