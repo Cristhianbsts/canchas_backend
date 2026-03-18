@@ -41,8 +41,8 @@ const __dirname = path.dirname(__filename);
 
 app.use(
   cors({
-    //  origin: "https://futboldev5-proyecto.vercel.app",
-    origin: "http://localhost:3001"
+    origin: "https://futboldev5-proyecto.vercel.app",
+  
     credentials: true,
   })
 );
