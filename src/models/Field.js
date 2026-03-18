@@ -24,17 +24,6 @@ const FieldSchema = Schema(
       trim: true,
       default: "",
     },
-<<<<<<< HEAD
-    isDeleted:{
-      type:Boolean,
-      default:false
-    }
-=======
-     isDeleted: {
-    type: Boolean,
-    default: false
-  }
->>>>>>> 85d4e933607b9a5b1a3158ad6ef9a3eeecceb713
   },
   {
     timestamps: true,
