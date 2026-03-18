@@ -7,13 +7,15 @@ import {
 } from "../controllers/user.controller.js";
 import { handleValidationErrors } from "../middlewares/error.middleware.js";
 import { userExistsById } from "../middlewares/login.middleware.js";
+import {authenticate} from "../middlewares/token.middleware.js"
+import { validarRolAdmin } from "../middlewares/rol.middleware.js";
 
 const router = Router();
 
 router.get("/", getUser);
 
 router.patch(
-  "/:id/activate",
+  "/:id/activate", authenticate, validarRolAdmin,
   [
     check("id", "NO es un id valido").isMongoId().custom(userExistsById),
     handleValidationErrors,
@@ -22,7 +24,7 @@ router.patch(
 );
 
 router.patch(
-  "/:id/suspend",
+  "/:id/suspend", authenticate, validarRolAdmin,
   [
     check("id", "NO es un id valido").isMongoId().custom(userExistsById),
     handleValidationErrors,

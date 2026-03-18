@@ -26,18 +26,16 @@ const handleErrorsValidation = (req, res , next )=>{
         }
         return true;     
      }),
-     check("email")
-  .notEmpty().withMessage("Debe ingresar algun mail")
-  .trim()
-  .isEmail().withMessage("Correo no valido")
-  .normalizeEmail()
-  .custom(async (email) => {
-    const userEmail = await User.findOne({ email });
-    if (userEmail) {
-      throw new Error("El email ya existe");
-    }
-    return true;
-  }),
+     check('email')
+     .notEmpty().withMessage('Debe ingresar algun mail')
+     .trim()
+     .isEmail().normalizeEmail().withMessage('Correo no valido')
+     .custom( async (email,{req})=>{
+      const  emailExist = await User.findOne({email})
+        if(!req.userExist && emailExist){
+            throw new Error("El mail ingresado ya esta asociado a otra cuenta")
+        }
+     }),
     check('password')
     .notEmpty().withMessage('Debe ingresar alguna contraseña')
     .trim()
@@ -47,13 +45,19 @@ const handleErrorsValidation = (req, res , next )=>{
         minLowercase:1,
         minNumbers:1,
         minSymbols:1
-    })
+    }).withMessage('La contraseña debe tener al menos 10 caracteres, una mayúscula, una minúscula, un número y un símbolo')
     .escape(),
     check('phoneNumber')
     .notEmpty().withMessage('Debe ingresar algun numero')
     .trim()
     .isNumeric()
     .isLength({min:10,max:10})
+    .custom( async (phoneNumber,{req})=>{
+      const  phoneNumberExist = await User.findOne({phoneNumber})
+        if(!req.userExist && phoneNumberExist){
+            throw new Error("El numero de telefono ingresado ya esta asociado a otra cuenta")
+        }
+     })
     ,
     handleErrorsValidation
  ]  

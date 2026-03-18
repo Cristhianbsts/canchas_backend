@@ -1,15 +1,13 @@
 import Product from "../models/Product.js";
 
-// ----------------------------------------------------
-// Validar si el producto existe por ID
-// ----------------------------------------------------
+
 const validateProductId = async (req, res, next) => {
   try {
     const { id } = req.params;
 
     const product = await Product.findById(id);
 
-    // Si no existe el producto
+
     if (!product) {
       return res.status(404).json({
         ok: false,
@@ -17,16 +15,13 @@ const validateProductId = async (req, res, next) => {
       });
     }
 
-    // Si existe pero está inactivo (soft delete)
-    if (product.active === false) {
-      return res.status(404).json({
-        ok: false,
-        message: "El producto no está disponible",
-      });
-    }
 
-    // Guardamos el producto en req por si después querés reutilizarlo
     req.product = product;
+
+
+    if (product.active === false) {
+      req.productDeleted = true; 
+    }
 
     next();
   } catch (error) {

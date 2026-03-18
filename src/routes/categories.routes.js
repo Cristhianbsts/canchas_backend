@@ -1,6 +1,7 @@
 import { Router } from "express";
 
 import { authenticate } from "../middlewares/token.middleware.js";
+import { validarRolAdmin } from "../middlewares/rol.middleware.js";
 import { handleValidationErrors } from "../middlewares/error.middleware.js";
 
 import {
@@ -26,10 +27,12 @@ const router = Router();
 
 router.get("/", getCategories);
 
+
 router.post(
   "/",
   [
     authenticate,
+    validarRolAdmin,
     ...createCategoryRules,
     handleValidationErrors,
     validateCategoryNameExists,
@@ -37,10 +40,12 @@ router.post(
   createCategory
 );
 
+
 router.patch(
   "/:id",
   [
     authenticate,
+    validarRolAdmin,
     ...categoryIdParamRules,
     ...updateCategoryRules,
     handleValidationErrors,
@@ -50,10 +55,12 @@ router.patch(
   updateCategory
 );
 
+
 router.delete(
   "/:id",
   [
     authenticate,
+    validarRolAdmin,
     ...categoryIdParamRules,
     handleValidationErrors,
     validateCategoryId,

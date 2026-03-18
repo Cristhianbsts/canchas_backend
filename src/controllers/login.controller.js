@@ -5,7 +5,7 @@ const login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    const user = await User.findOne({ email }).select("+password");
+    const user = await User.findOne({ email })
 
     if (!user) {
       return res.status(401).json({
@@ -36,6 +36,10 @@ const login = async (req, res) => {
     return res.status(200).json({
       ok: true,
       message: "Login exitoso",
+      data:{
+        role: user.role
+      }
+
     });
   } catch (error) {
     return res.status(500).json({
@@ -45,4 +49,25 @@ const login = async (req, res) => {
   }
 };
 
-export { login };
+const getProfile = async (req, res) => {
+  try {
+    const user = req.user;
+    if (!user) {
+      return res.status(404).json({
+        ok: false,
+        message: "Usuario no encontrado",
+      });
+    }
+    return res.status(200).json({
+      ok: true,
+      user,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      ok: false,
+      error: error.message,
+    });
+  }
+};
+
+export { login, getProfile };

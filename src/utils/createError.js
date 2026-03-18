@@ -5,4 +5,4 @@ const createError = (status = 500, message = "Error interno", details = null) =>
     return err;
   };
   
-  export default createError;
+  export {createError};

@@ -6,6 +6,6 @@ import { formRegisterValidation } from "../middlewares/register.middleware.js";
 const router = Router();
 
 
-router.post("/register",formRegisterValidation(),handleControllerRegister)
+router.post("/",formRegisterValidation(),handleControllerRegister)
 
 export default router;

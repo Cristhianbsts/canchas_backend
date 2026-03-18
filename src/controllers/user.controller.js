@@ -1,8 +1,6 @@
 import  User  from "../models/User.js";
 
 
-//listar usuarios
-
 const getUser = async (req, res) =>{
     try {
         const users = await User.find().select("-password");
@@ -22,7 +20,6 @@ const getUser = async (req, res) =>{
     }
 };
 
-// activar usuario
 const activeUser = async ( req, res) => {
     try {
         const {id} = req.params;
@@ -56,7 +53,6 @@ const activeUser = async ( req, res) => {
 };
 
 
-// suspender/eliminar usuarios
 
 const suspendUser = async ( req, res) => {
     try {

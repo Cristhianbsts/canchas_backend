@@ -1,6 +1,7 @@
 import { Router } from "express";
 
 import { authenticate } from "../middlewares/token.middleware.js";
+import { validarRolAdmin } from "../middlewares/rol.middleware.js";
 import { handleValidationErrors } from "../middlewares/error.middleware.js";
 import { validateProductId } from "../middlewares/products.middleware.js";
 
@@ -17,6 +18,8 @@ import {
   updateProductRules,
 } from "../validators/products.rules.js";
 
+
+
 const router = Router();
 
 router.get("/", getProducts);
@@ -25,6 +28,7 @@ router.post(
   "/",
   [
     authenticate,
+    validarRolAdmin,
     ...createProductRules,
     handleValidationErrors,
   ],
@@ -35,6 +39,7 @@ router.patch(
   "/:id",
   [
     authenticate,
+    validarRolAdmin,
     ...productIdParamRules,
     ...updateProductRules,
     handleValidationErrors,
@@ -47,6 +52,7 @@ router.delete(
   "/:id",
   [
     authenticate,
+    validarRolAdmin,
     ...productIdParamRules,
     handleValidationErrors,
     validateProductId,

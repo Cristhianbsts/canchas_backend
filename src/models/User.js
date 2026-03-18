@@ -9,41 +9,31 @@ const UserSchema = Schema(
             unique: true,
             trim: true,
         },
-        // email: {
-        //     type: String,
-        //     required: true,
-        //     unique: true,
-        //     lowercase: true,
-        //     trim: true,
-        // },
+        email: {
+            type: String,
+            required: true,
+            unique: true,
+            lowercase: true,
+            trim: true,
+        },
         password: {
             type: String,
             required: true,
         },
-        // phoneNumber: {
-        //     type: String,
-        //     required: [ true, "El Número de celular es obligatorio"],
-        //     trim: true,    
-        // },
+        phoneNumber: {
+            type: String,
+            required: [ true, "El Número de celular es obligatorio"],
+            trim: true,    
+        },
         role: {
             type: String,
-            enum: ["user", "admin", "superadmin"],
+            enum: ["user", "admin"],
             default: "user",
         },
         active: {
             type: Boolean,
             default: true,
-        },
-        emailVerified: {
-            type: Boolean,
-            default: false,
-        },
-        verificationCode: {
-            type: String,
-        },
-        verificationCodeExpires: {
-            type: Date,
-        },
+        }
     },
     {
         timestamps: true,
@@ -62,15 +52,6 @@ UserSchema.pre("save", async function () {
 });
 
 
-
-UserSchema.methods.generateVerificationCode = function () {
- 
-    const code = Math.floor(100000 + Math.random() * 900000).toString();
-
-    this.verificationCode = code;
-    this.verificationCodeExpires = Date.now() + 15 * 60 * 1000; 
-    return code;
-};
 
 
 UserSchema.methods.comparePassword = function (userPassword) {
