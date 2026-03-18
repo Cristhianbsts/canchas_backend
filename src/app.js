@@ -61,6 +61,9 @@ app.use("/api/book",routeBooking);
 app.use("/api/contact", nodemailerRouter)
 app.use("/api/logout",logoutRouter)
 app.use(express.static(path.join(__dirname, "../api")));
+app.get("/index", (req, res) => {
+  res.status(200).json({ ok: true });
+});
 app.use((req, res, next) => {
   return res.status(404).json({
     ok: false,
@@ -70,9 +73,7 @@ app.use((req, res, next) => {
 })
 app.use(errorHandler)
 
-app.get("/index", (req, res) => {
-  res.status(200).json({ ok: true });
-});
+
 
 
 export default app;
