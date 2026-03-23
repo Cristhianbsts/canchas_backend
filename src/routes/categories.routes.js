@@ -12,7 +12,6 @@ import {
 
 import {
   getCategories,
-  getAdminCategories,
   createCategory,
   updateCategory,
   activateCategory,
@@ -28,8 +27,6 @@ import {
 const router = Router();
 
 router.get("/", getCategories);
-
-router.get("/admin", [authenticate, validarRolAdmin], getAdminCategories);
 
 router.post(
   "/",

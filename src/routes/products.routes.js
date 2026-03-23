@@ -8,7 +8,6 @@ import { validateProductId } from "../middlewares/products.middleware.js";
 import {
   createProduct,
   getProducts,
-  getAdminProducts,
   updateProduct,
   activateProduct,
   deleteProduct,
@@ -23,8 +22,6 @@ import {
 const router = Router();
 
 router.get("/", getProducts);
-
-router.get("/admin", [authenticate, validarRolAdmin], getAdminProducts);
 
 router.post(
   "/",
