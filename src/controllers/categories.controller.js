@@ -28,6 +28,26 @@ const getCategories = async (req, res) => {
   }
 };
 
+const getAdminCategories = async (req, res) => {
+  try {
+    const [total, categories] = await Promise.all([
+      Category.countDocuments(),
+      Category.find({}).sort({ active: -1, name: 1 }),
+    ]);
+
+    res.json({
+      ok: true,
+      total,
+      categories,
+    });
+  } catch (error) {
+    res.status(500).json({
+      ok: false,
+      message: error.message,
+    });
+  }
+};
+
 const createCategory = async (req, res) => {
   try {
     const name = normalizeName(req.body.name);
@@ -147,6 +167,7 @@ const deleteCategory = async (req, res) => {
 
 export {
   getCategories,
+  getAdminCategories,
   createCategory,
   updateCategory,
   activateCategory,

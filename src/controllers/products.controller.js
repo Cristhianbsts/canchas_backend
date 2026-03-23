@@ -59,6 +59,28 @@ const getProducts = async (req, res) => {
   }
 };
 
+const getAdminProducts = async (req, res) => {
+  try {
+    const [total, items] = await Promise.all([
+      Product.countDocuments(),
+      Product.find({})
+        .sort({ active: -1, name: 1 })
+        .populate("category", "name"),
+    ]);
+
+    res.json({
+      ok: true,
+      total,
+      items,
+    });
+  } catch (error) {
+    res.status(500).json({
+      ok: false,
+      message: error.message,
+    });
+  }
+};
+
 const createProduct = async (req, res) => {
   try {
     const { price, stock, category, description } = req.body;
@@ -253,6 +275,7 @@ const deleteProduct = async (req, res) => {
 export {
   createProduct,
   getProducts,
+  getAdminProducts,
   updateProduct,
   activateProduct,
   deleteProduct,
