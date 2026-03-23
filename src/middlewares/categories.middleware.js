@@ -12,10 +12,10 @@ const validateCategoryId = async (req, res, next) => {
 
     const category = await Category.findById(id);
 
-    if (!category || category.active === false) {
+    if (!category) {
       return res.status(404).json({
         ok: false,
-        message: "Categoría no encontrada",
+        message: "Categoria no encontrada",
       });
     }
 
@@ -35,13 +35,17 @@ const validateCategoryNameExists = async (req, res, next) => {
 
     if (!name) return next();
 
-    const category = await Category.findOne({ name, active: true });
+    const category = await Category.findOne({ name });
 
-    if (category) {
+    if (category && category.active !== false) {
       return res.status(400).json({
         ok: false,
-        message: "Ya existe una categoría con ese nombre",
+        message: "Ya existe una categoria con ese nombre",
       });
+    }
+
+    if (category) {
+      req.categoryToReactivate = category;
     }
 
     next();
@@ -62,14 +66,13 @@ const validateCategoryNameOnUpdate = async (req, res, next) => {
 
     const category = await Category.findOne({
       name,
-      active: true,
       _id: { $ne: id },
     });
 
     if (category) {
       return res.status(400).json({
         ok: false,
-        message: "Ya existe una categoría con ese nombre",
+        message: "Ya existe una categoria con ese nombre",
       });
     }
 

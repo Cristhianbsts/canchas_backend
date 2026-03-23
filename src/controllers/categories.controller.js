@@ -1,12 +1,38 @@
 import Category from "../models/Category.js";
 
+const normalizeName = (value) =>
+  String(value ?? "")
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, " ");
+
 const getCategories = async (req, res) => {
   try {
     const query = { active: true };
 
     const [total, categories] = await Promise.all([
       Category.countDocuments(query),
-      Category.find(query),
+      Category.find(query).sort({ name: 1 }),
+    ]);
+
+    res.json({
+      ok: true,
+      total,
+      categories,
+    });
+  } catch (error) {
+    res.status(500).json({
+      ok: false,
+      message: error.message,
+    });
+  }
+};
+
+const getAdminCategories = async (req, res) => {
+  try {
+    const [total, categories] = await Promise.all([
+      Category.countDocuments(),
+      Category.find({}).sort({ active: -1, name: 1 }),
     ]);
 
     res.json({
@@ -24,7 +50,23 @@ const getCategories = async (req, res) => {
 
 const createCategory = async (req, res) => {
   try {
-    const name = String(req.body.name ?? "").trim();
+    const name = normalizeName(req.body.name);
+    const categoryToReactivate =
+      req.categoryToReactivate || (await Category.findOne({ name }));
+
+    if (categoryToReactivate) {
+      categoryToReactivate.name = name;
+      categoryToReactivate.slug = name;
+      categoryToReactivate.active = true;
+
+      await categoryToReactivate.save();
+
+      return res.json({
+        ok: true,
+        message: "Categoria reactivada",
+        category: categoryToReactivate,
+      });
+    }
 
     const category = await Category.create({
       name,
@@ -33,14 +75,14 @@ const createCategory = async (req, res) => {
 
     res.status(201).json({
       ok: true,
-      message: "Categoría creada",
+      message: "Categoria creada",
       category,
     });
   } catch (error) {
     if (error?.code === 11000) {
       return res.status(400).json({
         ok: false,
-        message: "Ya existe una categoría con ese nombre",
+        message: "Ya existe una categoria con ese nombre",
       });
     }
 
@@ -53,36 +95,26 @@ const createCategory = async (req, res) => {
 
 const updateCategory = async (req, res) => {
   try {
-    const { id } = req.params;
-    const name = String(req.body.name ?? "").trim();
+    const category = req.category;
 
-    const data = {
-      name,
-      slug: name,
-    };
-
-    const category = await Category.findByIdAndUpdate(id, data, {
-      new: true,
-      runValidators: true,
-    });
-
-    if (!category || category.active === false) {
-      return res.status(404).json({
-        ok: false,
-        message: "Categoría no encontrada",
-      });
+    if (req.body.name !== undefined) {
+      const name = normalizeName(req.body.name);
+      category.name = name;
+      category.slug = name;
     }
+
+    await category.save();
 
     res.json({
       ok: true,
-      message: "Categoría actualizada",
+      message: "Categoria actualizada",
       category,
     });
   } catch (error) {
     if (error?.code === 11000) {
       return res.status(400).json({
         ok: false,
-        message: "Ya existe una categoría con ese nombre",
+        message: "Ya existe una categoria con ese nombre",
       });
     }
 
@@ -93,26 +125,36 @@ const updateCategory = async (req, res) => {
   }
 };
 
-const deleteCategory = async (req, res) => {
+const activateCategory = async (req, res) => {
   try {
-    const { id } = req.params;
+    const category = req.category;
 
-    const category = await Category.findByIdAndUpdate(
-      id,
-      { active: false },
-      { new: true }
-    );
-
-    if (!category) {
-      return res.status(404).json({
-        ok: false,
-        message: "Categoría no encontrada",
-      });
-    }
+    category.active = true;
+    await category.save();
 
     res.json({
       ok: true,
-      message: "Categoría eliminada",
+      message: "Categoria activada",
+      category,
+    });
+  } catch (error) {
+    res.status(500).json({
+      ok: false,
+      message: error.message,
+    });
+  }
+};
+
+const deleteCategory = async (req, res) => {
+  try {
+    const category = req.category;
+
+    category.active = false;
+    await category.save();
+
+    res.json({
+      ok: true,
+      message: "Categoria desactivada",
       category,
     });
   } catch (error) {
@@ -125,7 +167,9 @@ const deleteCategory = async (req, res) => {
 
 export {
   getCategories,
+  getAdminCategories,
   createCategory,
   updateCategory,
+  activateCategory,
   deleteCategory,
 };

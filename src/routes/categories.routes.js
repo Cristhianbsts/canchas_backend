@@ -12,8 +12,10 @@ import {
 
 import {
   getCategories,
+  getAdminCategories,
   createCategory,
   updateCategory,
+  activateCategory,
   deleteCategory,
 } from "../controllers/categories.controller.js";
 
@@ -27,6 +29,7 @@ const router = Router();
 
 router.get("/", getCategories);
 
+router.get("/admin", [authenticate, validarRolAdmin], getAdminCategories);
 
 router.post(
   "/",
@@ -39,7 +42,6 @@ router.post(
   ],
   createCategory
 );
-
 
 router.patch(
   "/:id",
@@ -55,6 +57,17 @@ router.patch(
   updateCategory
 );
 
+router.patch(
+  "/:id/activate",
+  [
+    authenticate,
+    validarRolAdmin,
+    ...categoryIdParamRules,
+    handleValidationErrors,
+    validateCategoryId,
+  ],
+  activateCategory
+);
 
 router.delete(
   "/:id",

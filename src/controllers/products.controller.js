@@ -1,8 +1,38 @@
 import { v2 as cloudinary } from "cloudinary";
 import Product from "../models/Product.js";
 
+const DEFAULT_IMAGE =
+  "https://res.cloudinary.com/dp7qbi976/image/upload/v1733325605/v7fiv6xngp8o78v7a3sd.webp";
 
-const DEFAULT_IMAGE = "https://res.cloudinary.com/dp7qbi976/image/upload/v1733325605/v7fiv6xngp8o78v7a3sd.webp";
+const normalizeProductName = (value) =>
+  String(value ?? "")
+    .trim()
+    .toLowerCase();
+
+const parseBoolean = (value, fallback = undefined) => {
+  if (value === undefined) return fallback;
+  if (typeof value === "boolean") return value;
+
+  if (typeof value === "string") {
+    const normalized = value.trim().toLowerCase();
+
+    if (normalized === "true") return true;
+    if (normalized === "false") return false;
+  }
+
+  return Boolean(value);
+};
+
+const uploadProductImage = async (file) => {
+  if (!file) return null;
+
+  const dataUri = `data:${file.mimetype};base64,${file.data.toString("base64")}`;
+  const result = await cloudinary.uploader.upload(dataUri, {
+    folder: "productos",
+  });
+
+  return result.secure_url;
+};
 
 const getProducts = async (req, res) => {
   try {
@@ -10,7 +40,6 @@ const getProducts = async (req, res) => {
 
     const parsedLimit = Number(limit);
     const parsedOffset = Number(offset);
-
     const query = { active: true };
 
     const [total, items] = await Promise.all([
@@ -30,10 +59,33 @@ const getProducts = async (req, res) => {
   }
 };
 
+const getAdminProducts = async (req, res) => {
+  try {
+    const [total, items] = await Promise.all([
+      Product.countDocuments(),
+      Product.find({})
+        .sort({ active: -1, name: 1 })
+        .populate("category", "name"),
+    ]);
+
+    res.json({
+      ok: true,
+      total,
+      items,
+    });
+  } catch (error) {
+    res.status(500).json({
+      ok: false,
+      message: error.message,
+    });
+  }
+};
+
 const createProduct = async (req, res) => {
   try {
-    const { price, stock, category, description, active } = req.body;
-    const name = String(req.body.name).trim().toUpperCase();
+    const { price, stock, category, description } = req.body;
+    const name = normalizeProductName(req.body.name);
+    const imageUrl = await uploadProductImage(req.files?.archivo);
 
     const existingItem = await Product.findOne({
       name,
@@ -48,18 +100,29 @@ const createProduct = async (req, res) => {
       });
     }
 
-    // --- LÓGICA DE CLOUDINARY PARA CREAR ---
-    let imageUrl = DEFAULT_IMAGE;
+    const inactiveItem = await Product.findOne({
+      name,
+      category,
+      active: false,
+    });
 
-    if (req.files && req.files.archivo) {
-      const file = req.files.archivo;
-      const dataUri = `data:${file.mimetype};base64,${file.data.toString("base64")}`;
-      const result = await cloudinary.uploader.upload(dataUri, {
-        folder: 'productos' 
+    if (inactiveItem) {
+      inactiveItem.name = name;
+      inactiveItem.category = category;
+      inactiveItem.price = price;
+      inactiveItem.stock = stock;
+      inactiveItem.description = description;
+      inactiveItem.active = true;
+      inactiveItem.image = imageUrl || inactiveItem.image || DEFAULT_IMAGE;
+
+      await inactiveItem.save();
+
+      return res.json({
+        ok: true,
+        message: `Producto ${inactiveItem.name} reactivado`,
+        item: inactiveItem,
       });
-      imageUrl = result.secure_url;
     }
-    // ---------------------------------------
 
     const data = {
       name,
@@ -67,8 +130,8 @@ const createProduct = async (req, res) => {
       price,
       stock,
       description,
-      active,
-      image: imageUrl, 
+      active: parseBoolean(req.body.active, true),
+      image: imageUrl || DEFAULT_IMAGE,
       user: req.user._id,
     };
 
@@ -96,29 +159,20 @@ const createProduct = async (req, res) => {
 
 const updateProduct = async (req, res) => {
   try {
-    const { id } = req.params;
-    const { price, stock, category, description, active } = req.body;
+    const product = req.product;
+    const { price, stock, category, description } = req.body;
 
-    const data = {
-      user: req.user._id,
-    };
+    const nextName =
+      req.body.name !== undefined ? normalizeProductName(req.body.name) : product.name;
+    const nextCategory = category !== undefined ? category : product.category;
+    const nextActive = parseBoolean(req.body.active, product.active);
 
-    if (price !== undefined) data.price = price;
-    if (stock !== undefined) data.stock = stock;
-    if (category !== undefined) data.category = category;
-    if (description !== undefined) data.description = description;
-    if (active !== undefined) data.active = active;
-
-    if (req.body.name) {
-      data.name = String(req.body.name).trim().toUpperCase();
-    }
-
-    if (data.name) {
+    if (nextActive) {
       const existingItem = await Product.findOne({
-        name: data.name,
-        category,
+        name: nextName,
+        category: nextCategory,
         active: true,
-        _id: { $ne: id },
+        _id: { $ne: product._id },
       });
 
       if (existingItem) {
@@ -129,33 +183,25 @@ const updateProduct = async (req, res) => {
       }
     }
 
-    // --- LÓGICA DE CLOUDINARY PARA ACTUALIZAR ---
-    if (req.files && req.files.archivo) {
-      const file = req.files.archivo;
-      const dataUri = `data:${file.mimetype};base64,${file.data.toString("base64")}`;
-      const result = await cloudinary.uploader.upload(dataUri, {
-        folder: 'productos'
-      });
-      data.image = result.secure_url; 
-    }
-    // ------------------------------------------
+    if (req.body.name !== undefined) product.name = nextName;
+    if (price !== undefined) product.price = price;
+    if (stock !== undefined) product.stock = stock;
+    if (category !== undefined) product.category = category;
+    if (description !== undefined) product.description = description;
+    if (req.body.active !== undefined) product.active = nextActive;
 
-    const updatedItem = await Product.findByIdAndUpdate(id, data, {
-      new: true,
-      runValidators: true,
-    });
+    const imageUrl = await uploadProductImage(req.files?.archivo);
 
-    if (!updatedItem) {
-      return res.status(404).json({
-        ok: false,
-        message: "Producto no encontrado",
-      });
+    if (imageUrl) {
+      product.image = imageUrl;
     }
+
+    await product.save();
 
     res.json({
       ok: true,
       message: "Producto actualizado",
-      item: updatedItem,
+      item: product,
     });
   } catch (error) {
     if (error?.code === 11000) {
@@ -172,27 +218,51 @@ const updateProduct = async (req, res) => {
   }
 };
 
-const deleteProduct = async (req, res) => {
+const activateProduct = async (req, res) => {
   try {
-    const { id } = req.params;
+    const product = req.product;
 
-    const deletedItem = await Product.findByIdAndUpdate(
-      id,
-      { active: false },
-      { new: true }
-    );
+    const existingItem = await Product.findOne({
+      name: product.name,
+      category: product.category,
+      active: true,
+      _id: { $ne: product._id },
+    });
 
-    if (!deletedItem) {
-      return res.status(404).json({
+    if (existingItem) {
+      return res.status(400).json({
         ok: false,
-        message: "Producto no encontrado",
+        message: "Ya existe un producto activo con ese nombre",
       });
     }
 
+    product.active = true;
+    await product.save();
+
     res.json({
       ok: true,
-      message: "Producto eliminado",
-      item: deletedItem,
+      message: "Producto activado",
+      item: product,
+    });
+  } catch (error) {
+    res.status(500).json({
+      ok: false,
+      message: error.message,
+    });
+  }
+};
+
+const deleteProduct = async (req, res) => {
+  try {
+    const product = req.product;
+
+    product.active = false;
+    await product.save();
+
+    res.json({
+      ok: true,
+      message: "Producto desactivado",
+      item: product,
     });
   } catch (error) {
     res.status(500).json({
@@ -205,6 +275,8 @@ const deleteProduct = async (req, res) => {
 export {
   createProduct,
   getProducts,
+  getAdminProducts,
   updateProduct,
+  activateProduct,
   deleteProduct,
 };
